@@ -6,8 +6,7 @@ export const SUPPORTED_SETS: SupportedSet[] = [
 
   // 2025 Sets
   { code: "TBD", name: "Tarkir: Dragonstorm", releaseDate: "2025-11-07", dataStartDate: "2025-10-31", dataEndDate: "2026-01-17" },
-  { code: "PLS", name: "Planeswalkers", releaseDate: "2025-09-12", dataStartDate: "2025-09-05", dataEndDate: "2025-11-07" },
-  { code: "DFT", name: "Duskmourn: Fractures", releaseDate: "2025-06-20", dataStartDate: "2025-06-13", dataEndDate: "2025-09-12" },
+  { code: "DFT", name: "Duskmourn: Fractures", releaseDate: "2025-06-20", dataStartDate: "2025-06-13", dataEndDate: "2025-11-07" },
   { code: "AKR", name: "Amonkhet Remastered", releaseDate: "2025-04-25", dataStartDate: "2025-04-18", dataEndDate: "2025-06-20" },
   { code: "AET", name: "Aetherdrift", releaseDate: "2025-02-14", dataStartDate: "2025-02-07", dataEndDate: "2025-04-25" },
 
