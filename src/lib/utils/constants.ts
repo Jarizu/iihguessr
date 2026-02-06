@@ -6,8 +6,7 @@ export const SUPPORTED_SETS: SupportedSet[] = [
 
   // 2025 Sets
   { code: "tla", name: "Avatar: The Last Airbender", releaseDate: "2025-11-21", dataStartDate: "2025-11-14", dataEndDate: "2026-01-23" },
-  { code: "spm", name: "Marvel's Spider-Man", releaseDate: "2025-09-26", dataStartDate: "2025-09-19", dataEndDate: "2025-11-21" },
-  { code: "om1", name: "Through the Omenpaths", releaseDate: "2025-09-23", dataStartDate: "2025-09-16", dataEndDate: "2025-09-26" },
+  { code: "om1", name: "Through the Omenpaths", releaseDate: "2025-09-23", dataStartDate: "2025-09-16", dataEndDate: "2025-11-21" },
   { code: "eoe", name: "Edge of Eternities", releaseDate: "2025-08-01", dataStartDate: "2025-07-25", dataEndDate: "2025-09-23" },
   { code: "fin", name: "Final Fantasy", releaseDate: "2025-06-13", dataStartDate: "2025-06-06", dataEndDate: "2025-08-01" },
   { code: "tdm", name: "Tarkir: Dragonstorm", releaseDate: "2025-04-11", dataStartDate: "2025-04-04", dataEndDate: "2025-06-13" },
@@ -17,9 +16,7 @@ export const SUPPORTED_SETS: SupportedSet[] = [
   { code: "fdn", name: "Foundations", releaseDate: "2024-11-15", dataStartDate: "2024-11-08", dataEndDate: "2025-02-14" },
   { code: "dsk", name: "Duskmourn: House of Horror", releaseDate: "2024-09-27", dataStartDate: "2024-09-20", dataEndDate: "2024-11-15" },
   { code: "blb", name: "Bloomburrow", releaseDate: "2024-08-02", dataStartDate: "2024-07-30", dataEndDate: "2024-09-27" },
-  { code: "acr", name: "Assassin's Creed", releaseDate: "2024-07-05", dataStartDate: "2024-06-28", dataEndDate: "2024-08-02" },
-  { code: "big", name: "The Big Score", releaseDate: "2024-04-19", dataStartDate: "2024-04-12", dataEndDate: "2024-07-05" },
-  { code: "otj", name: "Outlaws of Thunder Junction", releaseDate: "2024-04-19", dataStartDate: "2024-04-12", dataEndDate: "2024-04-19" },
+  { code: "otj", name: "Outlaws of Thunder Junction", releaseDate: "2024-04-19", dataStartDate: "2024-04-12", dataEndDate: "2024-08-02" },
   { code: "mkm", name: "Murders at Karlov Manor", releaseDate: "2024-02-09", dataStartDate: "2024-02-02", dataEndDate: "2024-04-19" },
 
   // 2023 Sets
