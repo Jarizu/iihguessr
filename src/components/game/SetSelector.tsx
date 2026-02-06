@@ -30,7 +30,7 @@ export function SetSelector({
         >
           {SUPPORTED_SETS.map((set) => (
             <option key={set.code} value={set.code}>
-              {set.name} ({set.code})
+              {set.name} ({set.code.toUpperCase()})
             </option>
           ))}
         </select>

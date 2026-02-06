@@ -6,8 +6,7 @@ export const SUPPORTED_SETS: SupportedSet[] = [
 
   // 2025 Sets
   { code: "tla", name: "Avatar: The Last Airbender", releaseDate: "2025-11-21", dataStartDate: "2025-11-14", dataEndDate: "2026-01-23" },
-  { code: "om1", name: "Through the Omenpaths", releaseDate: "2025-09-23", dataStartDate: "2025-09-16", dataEndDate: "2025-11-21" },
-  { code: "eoe", name: "Edge of Eternities", releaseDate: "2025-08-01", dataStartDate: "2025-07-25", dataEndDate: "2025-09-23" },
+  { code: "eoe", name: "Edge of Eternities", releaseDate: "2025-08-01", dataStartDate: "2025-07-25", dataEndDate: "2025-11-21" },
   { code: "fin", name: "Final Fantasy", releaseDate: "2025-06-13", dataStartDate: "2025-06-06", dataEndDate: "2025-08-01" },
   { code: "tdm", name: "Tarkir: Dragonstorm", releaseDate: "2025-04-11", dataStartDate: "2025-04-04", dataEndDate: "2025-06-13" },
   { code: "dft", name: "Aetherdrift", releaseDate: "2025-02-14", dataStartDate: "2025-02-07", dataEndDate: "2025-04-11" },

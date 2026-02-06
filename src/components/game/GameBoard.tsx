@@ -117,7 +117,7 @@ export function GameBoard() {
         <>
           {/* Instruction - always shown */}
           <p className="text-gray-400 text-center">
-            Which card has the higher IWD?
+            Which card has the higher IIH?
           </p>
 
           {/* Card pair */}
