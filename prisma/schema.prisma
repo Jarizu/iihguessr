@@ -76,7 +76,7 @@ model Card {
   manaCost        String?
 
   // Scryfall data
-  scryfallId    String @unique
+  scryfallId    String
   imageUri      String
   imageUriLarge String?
 
@@ -102,6 +102,7 @@ model Card {
   @@unique([setCode, collectorNumber])
   @@index([setCode])
   @@index([iihPremier])
+  @@index([scryfallId])
 }
 
 model SetMetadata {
