@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { CardPair, GuessRequest, GuessResponse } from "@/types";
 import { Metric } from "@/lib/metrics";
@@ -79,10 +79,18 @@ export function useGame(setCode: string, metric: Metric) {
   const [pairQueue, setPairQueue] = useState<CardPair[]>([]);
   const [dataAsOf, setDataAsOf] = useState<string | null>(null);
 
+  // Keep the latest metric in a ref so fetchPairs always reads the current
+  // value without re-rendering. This lets us change metric without resetting
+  // the card on screen — only future fetches pick up the new metric.
+  const metricRef = useRef(metric);
+  useEffect(() => {
+    metricRef.current = metric;
+  }, [metric]);
+
   const fetchPairs = useCallback(
     async (count: number = 3) => {
       const response = await fetch(
-        `/api/cards/pair?set=${setCode}&metric=${metric}&count=${count}`,
+        `/api/cards/pair?set=${setCode}&metric=${metricRef.current}&count=${count}`,
       );
       if (!response.ok) {
         const error = await response.json();
@@ -92,10 +100,11 @@ export function useGame(setCode: string, metric: Metric) {
       setDataAsOf(data.dataAsOf);
       return data.pairs as CardPair[];
     },
-    [setCode, metric],
+    [setCode],
   );
 
-  // Re-init game when set or metric changes
+  // Set change: full reset + first fetch. Note: metric is intentionally NOT
+  // a dep — see the metric-change effect below.
   useEffect(() => {
     let mounted = true;
 
@@ -144,7 +153,19 @@ export function useGame(setCode: string, metric: Metric) {
     return () => {
       mounted = false;
     };
-  }, [fetchPairs, setCode, metric]);
+  }, [fetchPairs, setCode]);
+
+  // Metric change: drop the queued pairs (they were generated for the old
+  // metric and may be poorly calibrated) but leave the current pair on
+  // screen. The refill effect below will repopulate with the new metric.
+  const isFirstMetric = useRef(true);
+  useEffect(() => {
+    if (isFirstMetric.current) {
+      isFirstMetric.current = false;
+      return;
+    }
+    setPairQueue([]);
+  }, [metric]);
 
   useEffect(() => {
     if (pairQueue.length < 2 && !state.isLoading) {

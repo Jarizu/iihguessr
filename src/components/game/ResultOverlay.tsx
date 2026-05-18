@@ -21,14 +21,15 @@ function MetricRow({ metric, active, valueA, valueB }: MetricRowProps) {
   const fmt = (v: number | null) => (v === null ? "—" : cfg.format(v));
   return (
     <div
-      className={`flex justify-between gap-4 text-xs ${
+      className={`grid grid-cols-[1fr_5rem_1fr] gap-3 items-center text-xs sm:text-sm ${
         active ? "text-white font-semibold" : "text-gray-500"
       }`}
     >
-      <span className="w-16 text-left">{cfg.label}</span>
-      <span className="flex-1 text-right">{fmt(valueA)}</span>
-      <span className="text-gray-600">vs</span>
-      <span className="flex-1 text-left">{fmt(valueB)}</span>
+      <span className="text-right tabular-nums">{fmt(valueA)}</span>
+      <span className="text-center text-[10px] sm:text-xs uppercase tracking-wider text-gray-400">
+        {cfg.label}
+      </span>
+      <span className="text-left tabular-nums">{fmt(valueB)}</span>
     </div>
   );
 }
@@ -39,9 +40,10 @@ export function ResultOverlay({ result, onNext }: ResultOverlayProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 p-3 md:p-4 animate-slide-up">
       <div className="max-w-4xl mx-auto">
-        {/* Result status and button */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2">
+        {/* Result status (centered) and Next button (pinned right on web) */}
+        <div className="flex flex-col sm:flex-row sm:items-center mb-3 gap-3 sm:gap-0">
+          <div className="hidden sm:block sm:flex-1" />
+          <div className="flex items-center justify-center gap-2">
             <span
               className={`text-2xl ${
                 result.isCorrect ? "text-green-400" : "text-red-400"
@@ -60,42 +62,39 @@ export function ResultOverlay({ result, onNext }: ResultOverlayProps) {
               ({activeCfg.label}: Δ {activeCfg.formatDiff(result.valueDifference)})
             </span>
           </div>
-
-          <button
-            onClick={onNext}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm whitespace-nowrap"
-          >
-            Next →
-          </button>
+          <div className="sm:flex-1 sm:flex sm:justify-end flex justify-center">
+            <button
+              onClick={onNext}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm whitespace-nowrap"
+            >
+              Next →
+            </button>
+          </div>
         </div>
 
-        {/* Card names */}
-        <div className="flex items-start justify-center gap-3 text-xs sm:text-sm mb-3">
-          <div className="text-center flex-1 max-w-[45%]">
-            <a
-              href={getScryfallCardUrl(result.cardAScryfallId)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:text-blue-300 underline font-semibold"
-            >
-              {result.cardAName}
-            </a>
-          </div>
-          <span className="text-gray-500 flex-shrink-0 pt-0.5">vs</span>
-          <div className="text-center flex-1 max-w-[45%]">
-            <a
-              href={getScryfallCardUrl(result.cardBScryfallId)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:text-blue-300 underline font-semibold"
-            >
-              {result.cardBName}
-            </a>
-          </div>
+        {/* Card names — mirror the metric row layout so they line up on the same axis */}
+        <div className="grid grid-cols-[1fr_5rem_1fr] gap-3 items-center text-xs sm:text-sm mb-3">
+          <a
+            href={getScryfallCardUrl(result.cardAScryfallId)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 underline font-semibold text-right truncate"
+          >
+            {result.cardAName}
+          </a>
+          <span className="text-gray-500 text-center">vs</span>
+          <a
+            href={getScryfallCardUrl(result.cardBScryfallId)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 underline font-semibold text-left truncate"
+          >
+            {result.cardBName}
+          </a>
         </div>
 
         {/* All three metrics; active one is highlighted */}
-        <div className="max-w-md mx-auto space-y-1">
+        <div className="space-y-1">
           <MetricRow
             metric="IIH"
             active={result.metric === "IIH"}
