@@ -205,15 +205,15 @@ export default function AnalyticsPage() {
                   </p>
                 )}
               </div>
-              <ResponsiveContainer width="100%" height={400}>
-                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <ResponsiveContainer width="100%" height={420}>
+                <ScatterChart margin={{ top: 10, right: 20, bottom: 40, left: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                   <XAxis
                     type="number"
                     dataKey="manaValue"
                     name="Mana Value"
                     stroke="#9CA3AF"
-                    label={{ value: "Mana Value", position: "insideBottom", offset: -10, fill: "#9CA3AF" }}
+                    label={{ value: "Mana Value", position: "insideBottom", offset: -8, fill: "#9CA3AF" }}
                   />
                   <YAxis
                     type="number"
@@ -241,11 +241,11 @@ export default function AnalyticsPage() {
                       return null;
                     }}
                   />
-                  <Legend />
+                  <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: 10 }} />
                   {selectedMetric === "IIH" && (
                     <ReferenceLine y={0} stroke="#6B7280" strokeDasharray="3 3" />
                   )}
-                  <Scatter name="Creatures" data={creatures} fill="#3B82F6" fillOpacity={0.6} />
+                  <Scatter name="Creatures" data={creatures} fill="#864bff" fillOpacity={0.7} />
                   <Scatter name="Non-Creatures" data={nonCreatures} fill="#EF4444" fillOpacity={0.6} />
                 </ScatterChart>
               </ResponsiveContainer>
@@ -264,15 +264,15 @@ export default function AnalyticsPage() {
                   </p>
                 )}
               </div>
-              <ResponsiveContainer width="100%" height={400}>
-                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <ResponsiveContainer width="100%" height={420}>
+                <ScatterChart margin={{ top: 10, right: 20, bottom: 40, left: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                   <XAxis
                     type="number"
                     dataKey="gpPercent"
                     name="GP%"
                     stroke="#9CA3AF"
-                    label={{ value: "Games Played %", position: "insideBottom", offset: -10, fill: "#9CA3AF" }}
+                    label={{ value: "Games Played %", position: "insideBottom", offset: -8, fill: "#9CA3AF" }}
                     domain={[0, "auto"]}
                   />
                   <YAxis
@@ -304,7 +304,7 @@ export default function AnalyticsPage() {
                   {selectedMetric === "IIH" && (
                     <ReferenceLine y={0} stroke="#6B7280" strokeDasharray="3 3" />
                   )}
-                  <Scatter name="Cards" data={gpPercentData} fill="#8B5CF6" fillOpacity={0.6} />
+                  <Scatter name="Cards" data={gpPercentData} fill="#864bff" fillOpacity={0.7} />
                 </ScatterChart>
               </ResponsiveContainer>
             </div>

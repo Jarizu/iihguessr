@@ -12,35 +12,62 @@ export default function Home() {
           Train your Magic: The Gathering draft skills by comparing card values
         </p>
 
-        <div className="bg-neutral-800/50 rounded-lg p-6 text-left space-y-4">
-          <h2 className="font-beleren text-lg text-white">What is IIH?</h2>
-          <p className="text-neutral-400">
-            <strong className="text-neutral-200">IIH (Improvement In Hand)</strong> measures
-            how much a card improves your win rate when you draw it. Data comes from
-            17lands.com, aggregated from thousands of real BO1 Premier Draft games on MTG Arena.
-          </p>
-          <p className="text-neutral-400">
-            A card with +5% IIH means drawing it improves your win rate by 5 percentage
-            points compared to not drawing it.
-          </p>
-        </div>
-
-        <div className="bg-neutral-800/50 rounded-lg p-6 text-left space-y-4">
+        <div className="bg-neutral-900/60 border border-neutral-800 rounded-lg p-6 text-left space-y-3">
           <h2 className="font-beleren text-lg text-white">How to Play</h2>
           <ol className="text-neutral-400 space-y-2 list-decimal list-inside">
+            <li>Pick a set and a stat (IIH, GIH WR, or ALSA)</li>
             <li>Two cards appear side-by-side</li>
-            <li>Click the card you think has higher IIH</li>
-            <li>See if you&apos;re right and learn the actual values</li>
-            <li>Build streaks and track your accuracy</li>
+            <li>Click the card you think is better by that stat</li>
+            <li>See the result and build a streak</li>
           </ol>
         </div>
 
         <Link
           href="/game"
-          className="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-8 rounded-lg text-lg transition-colors"
+          className="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-8 rounded-lg text-lg transition-colors font-beleren tracking-wide"
         >
           Start Training
         </Link>
+
+        <div className="bg-neutral-900/60 border border-neutral-800 rounded-lg p-6 text-left space-y-4">
+          <h2 className="font-beleren text-lg text-white">
+            The three stats
+          </h2>
+          <p className="text-neutral-400 text-sm">
+            All from <a href="https://www.17lands.com" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 underline">17lands</a>,
+            aggregated from thousands of real Premier Draft games on MTG Arena.
+            Comparing cards by these tells you a lot about how a given draft format actually plays out.
+          </p>
+          <dl className="text-sm space-y-3">
+            <div>
+              <dt className="font-beleren text-white">IIH — Improvement In Hand</dt>
+              <dd className="text-neutral-400 mt-1">
+                How much your win rate goes up when you draw this card. Captures the card's marginal value
+                <em> beyond</em> what your deck would do without it.
+              </dd>
+            </div>
+            <div>
+              <dt className="font-beleren text-white">GIH WR — Games in Hand Win Rate</dt>
+              <dd className="text-neutral-400 mt-1">
+                Win rate of games where you ever had this card in hand. The most direct "is this card good?" measure,
+                but conflates the card's quality with the deck's quality.
+              </dd>
+            </div>
+            <div>
+              <dt className="font-beleren text-white">ALSA — Average Last Seen At</dt>
+              <dd className="text-neutral-400 mt-1">
+                The average pack pick the card is last seen in. Lower = picked earlier = more sought after.
+                Reflects what drafters <em>believe</em> about the card, which doesn't always match how it actually performs.
+              </dd>
+            </div>
+          </dl>
+          <p className="text-neutral-500 text-xs">
+            Want to see how these stats trend across mana value, color, and games played?{" "}
+            <Link href="/analytics" className="text-purple-400 hover:text-purple-300 underline">
+              Explore the data →
+            </Link>
+          </p>
+        </div>
 
         <div className="flex gap-4 justify-center text-sm text-neutral-500">
           <Link href="/stats" className="hover:text-neutral-300 transition-colors">
@@ -50,41 +77,6 @@ export default function Home() {
           <Link href="/review" className="hover:text-neutral-300 transition-colors">
             Review Mistakes
           </Link>
-        </div>
-
-        <div className="bg-neutral-800/50 rounded-lg p-6 text-left space-y-4">
-          <h2 className="font-beleren text-lg text-white">
-            Understanding IIH Limitations
-          </h2>
-          <div className="text-neutral-400 space-y-2 text-sm">
-            <p>
-              <strong className="text-neutral-200">IIH measures correlation, not causation.</strong>{" "}
-              This data is from BO1 Premier Draft on MTG Arena and may not apply to BO3 or other formats.
-              It&apos;s a powerful metric but has important limitations:
-            </p>
-            <ul className="list-disc list-inside space-y-2 ml-2">
-              <li>
-                <strong>Aggro bias:</strong> Fast decks often win before drawing cards matters,
-                giving low-mana-value cards artificially low IIH
-              </li>
-              <li>
-                <strong>Situational cards:</strong> Niche cards (like artifact destruction)
-                can have inflated IIH because they&apos;re only played in winning situations
-              </li>
-              <li>
-                <strong>Archetype paradox:</strong> Medium cards in top-tier archetypes may
-                have low IIH because the deck wins anyway
-              </li>
-            </ul>
-            <p className="mt-4 space-x-4">
-              <Link href="/analytics" className="text-purple-400 hover:text-purple-300 underline">
-                View data visualizations →
-              </Link>
-              <Link href="/learn" className="text-purple-400 hover:text-purple-300 underline">
-                Learn more about IIH methodology →
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </main>

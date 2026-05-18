@@ -43,11 +43,11 @@
 :root {
   --background: #000000;
   --foreground: #ffffff;
-  --accent: #a855f7; /* purple-500 */
+  --accent: #5b0dd1; /* purple-600 */
 }
 
 ::selection {
-  background: rgba(168, 85, 247, 0.35);
+  background: rgba(91, 13, 209, 0.45);
   color: #ffffff;
 }
 
@@ -92,10 +92,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3b0764; /* purple-950 */
+  background: #240554; /* purple-900 */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6b21a8; /* purple-800 */
+  background: #5b0dd1; /* purple-600 */
 }
