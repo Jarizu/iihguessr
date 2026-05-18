@@ -41,13 +41,13 @@ export function CardPair({
           showValue={valueA}
           metric={metric}
         />
-        <span className="hidden md:block text-gray-500 text-xs mt-2">
+        <span className="hidden md:block text-neutral-500 text-xs mt-2">
           Press 1 or click
         </span>
       </div>
 
       <div className="flex items-center pt-16 sm:pt-20 md:pt-32">
-        <span className="text-xl sm:text-2xl font-bold text-gray-500">VS</span>
+        <span className="text-xl sm:text-2xl font-bold text-neutral-500">VS</span>
       </div>
 
       <div className="flex flex-col items-center flex-1 min-w-0 max-w-[45vw] sm:max-w-none">
@@ -60,7 +60,7 @@ export function CardPair({
           showValue={valueB}
           metric={metric}
         />
-        <span className="hidden md:block text-gray-500 text-xs mt-2">
+        <span className="hidden md:block text-neutral-500 text-xs mt-2">
           Press 2 or click
         </span>
       </div>

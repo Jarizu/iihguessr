@@ -49,7 +49,7 @@ const METRIC_STORAGE_KEY = "iihguessr_metric";
 
 export default function AnalyticsPage() {
   const [sets, setSets] = useState<SetOption[]>([]);
-  const [selectedSet, setSelectedSet] = useState<string>("fdn");
+  const [selectedSet, setSelectedSet] = useState<string>("");
   const [selectedMetric, setSelectedMetric] = useState<Metric>(DEFAULT_METRIC);
   const [manaValueData, setManaValueData] = useState<ManaValueData[]>([]);
   const [gpPercentData, setGPPercentData] = useState<GPPercentData[]>([]);
@@ -75,15 +75,13 @@ export default function AnalyticsPage() {
           name: s.name,
         }));
         setSets(fetched);
-        if (fetched.length > 0 && !fetched.some((s: SetOption) => s.code === selectedSet)) {
-          setSelectedSet(fetched[0].code);
-        }
+        // Default to the most recently released set (the API sorts desc).
+        if (fetched.length > 0) setSelectedSet(fetched[0].code);
       })
       .catch(console.error);
     return () => {
       mounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -141,28 +139,28 @@ export default function AnalyticsPage() {
             <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
               {cfg.label} Analytics
             </h1>
-            <p className="text-gray-400">
+            <p className="text-neutral-400">
               {selectedMetric === "IIH"
                 ? "Explore the limitations and biases in IIH data."
                 : `Explore card data through the lens of ${cfg.longLabel}.`}
             </p>
           </div>
-          <Link href="/" className="text-blue-400 hover:text-blue-300 text-sm">
+          <Link href="/" className="text-purple-400 hover:text-purple-300 text-sm">
             ← Back to Home
           </Link>
         </div>
 
         {/* Selectors */}
-        <div className="bg-gray-800/50 rounded-lg p-4 flex flex-wrap gap-4 items-center">
+        <div className="bg-neutral-800/50 rounded-lg p-4 flex flex-wrap gap-4 items-center">
           <div>
-            <label htmlFor="analytics-set" className="text-gray-400 text-sm mr-2">
+            <label htmlFor="analytics-set" className="text-neutral-400 text-sm mr-2">
               Set:
             </label>
             <select
               id="analytics-set"
               value={selectedSet}
               onChange={(e) => setSelectedSet(e.target.value)}
-              className="bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="bg-neutral-800 text-white border border-neutral-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none"
             >
               {sets.map((set) => (
                 <option key={set.code} value={set.code}>
@@ -172,14 +170,14 @@ export default function AnalyticsPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="analytics-metric" className="text-gray-400 text-sm mr-2">
+            <label htmlFor="analytics-metric" className="text-neutral-400 text-sm mr-2">
               Metric:
             </label>
             <select
               id="analytics-metric"
               value={selectedMetric}
               onChange={(e) => handleMetricChange(e.target.value as Metric)}
-              className="bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="bg-neutral-800 text-white border border-neutral-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none"
             >
               {METRICS.map((m) => (
                 <option key={m} value={m}>
@@ -191,17 +189,17 @@ export default function AnalyticsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center text-gray-400 py-12">Loading analytics...</div>
+          <div className="text-center text-neutral-400 py-12">Loading analytics...</div>
         ) : (
           <>
             {/* Chart 1: vs Mana Value */}
-            <div className="bg-gray-800/50 rounded-lg p-6 space-y-4">
+            <div className="bg-neutral-800/50 rounded-lg p-6 space-y-4">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">
                   {cfg.label} vs. Mana Value
                 </h2>
                 {selectedMetric === "IIH" && (
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-neutral-400 text-sm">
                     Aggro bias: low-mana-value cards (especially creatures) tend to have lower IIH
                     because aggressive decks win before drawing matters.
                   </p>
@@ -230,13 +228,13 @@ export default function AnalyticsPage() {
                       if (active && payload && payload.length) {
                         const data = payload[0].payload;
                         return (
-                          <div className="bg-gray-900 border border-gray-700 p-3 rounded-lg">
+                          <div className="bg-neutral-900 border border-neutral-700 p-3 rounded-lg">
                             <p className="text-white font-semibold">{data.name}</p>
-                            <p className="text-gray-300 text-sm">MV: {data.manaValue}</p>
-                            <p className="text-gray-300 text-sm">
+                            <p className="text-neutral-300 text-sm">MV: {data.manaValue}</p>
+                            <p className="text-neutral-300 text-sm">
                               {cfg.label}: {formatY(data.value)}
                             </p>
-                            <p className="text-gray-400 text-xs">Games: {data.gamesPlayed}</p>
+                            <p className="text-neutral-400 text-xs">Games: {data.gamesPlayed}</p>
                           </div>
                         );
                       }
@@ -254,13 +252,13 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Chart 2: vs GP% */}
-            <div className="bg-gray-800/50 rounded-lg p-6 space-y-4">
+            <div className="bg-neutral-800/50 rounded-lg p-6 space-y-4">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">
                   {cfg.label} vs. Games Played %
                 </h2>
                 {selectedMetric === "IIH" && (
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-neutral-400 text-sm">
                     Cards played in fewer games (low GP%) often have inflated IIH because
                     they only end up in decks where they're good.
                   </p>
@@ -290,13 +288,13 @@ export default function AnalyticsPage() {
                       if (active && payload && payload.length) {
                         const data = payload[0].payload;
                         return (
-                          <div className="bg-gray-900 border border-gray-700 p-3 rounded-lg max-w-xs">
+                          <div className="bg-neutral-900 border border-neutral-700 p-3 rounded-lg max-w-xs">
                             <p className="text-white font-semibold">{data.name}</p>
-                            <p className="text-gray-300 text-sm">GP%: {data.gpPercent.toFixed(2)}%</p>
-                            <p className="text-gray-300 text-sm">
+                            <p className="text-neutral-300 text-sm">GP%: {data.gpPercent.toFixed(2)}%</p>
+                            <p className="text-neutral-300 text-sm">
                               {cfg.label}: {formatY(data.value)}
                             </p>
-                            <p className="text-gray-400 text-xs">{data.typeLine}</p>
+                            <p className="text-neutral-400 text-xs">{data.typeLine}</p>
                           </div>
                         );
                       }
@@ -312,13 +310,13 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Chart 3: Archetype */}
-            <div className="bg-gray-800/50 rounded-lg p-6 space-y-4">
+            <div className="bg-neutral-800/50 rounded-lg p-6 space-y-4">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">
                   {cfg.label} by Color Pair
                 </h2>
                 {selectedMetric === "IIH" && (
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-neutral-400 text-sm">
                     Strong archetypes often have lower median IIH because the deck wins
                     regardless of which specific cards are drawn.
                   </p>
@@ -326,7 +324,7 @@ export default function AnalyticsPage() {
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
-                  <thead className="text-gray-400 border-b border-gray-700">
+                  <thead className="text-neutral-400 border-b border-neutral-700">
                     <tr>
                       <th className="py-3 px-4">Color Pair</th>
                       <th className="py-3 px-4">Cards</th>
@@ -337,7 +335,7 @@ export default function AnalyticsPage() {
                       <th className="py-3 px-4">Range</th>
                     </tr>
                   </thead>
-                  <tbody className="text-gray-300">
+                  <tbody className="text-neutral-300">
                     {archetypeStats
                       .sort((a, b) =>
                         cfg.higherIsBetter ? b.median - a.median : a.median - b.median,
@@ -345,7 +343,7 @@ export default function AnalyticsPage() {
                       .map((stat) => (
                         <tr
                           key={stat.colorPair}
-                          className="border-b border-gray-800 hover:bg-gray-700/30"
+                          className="border-b border-neutral-800 hover:bg-neutral-700/30"
                         >
                           <td className="py-3 px-4 font-semibold">{stat.colorPair}</td>
                           <td className="py-3 px-4">{stat.count}</td>

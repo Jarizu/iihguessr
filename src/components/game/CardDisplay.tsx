@@ -31,8 +31,8 @@ export function CardDisplay({
   const getBorderClass = () => {
     if (result === "correct") return "ring-4 ring-green-500";
     if (result === "incorrect") return "ring-4 ring-red-500";
-    if (isSelected) return "ring-4 ring-blue-500";
-    return "ring-2 ring-gray-600 hover:ring-blue-400";
+    if (isSelected) return "ring-4 ring-purple-500";
+    return "ring-2 ring-neutral-600 hover:ring-purple-400";
   };
 
   const cfg = metric ? METRIC_CONFIG[metric] : null;
@@ -76,12 +76,12 @@ export function CardDisplay({
         )}
       </div>
 
-      <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-center font-medium text-gray-200 w-full truncate px-1">
+      <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-center font-medium text-neutral-200 w-full truncate px-1">
         {card.name}
       </p>
 
       {showChip && (
-        <div className="mt-1 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-bold bg-gray-800 text-gray-200">
+        <div className="mt-1 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-bold bg-neutral-800 text-neutral-200">
           {cfg!.format(showValue!)} {cfg!.label}
         </div>
       )}

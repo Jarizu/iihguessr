@@ -15,7 +15,7 @@ export function MetricSelector({
     <div className="flex items-center gap-2">
       <label
         htmlFor="metric-select"
-        className="text-gray-400 text-sm whitespace-nowrap"
+        className="text-neutral-400 text-sm whitespace-nowrap"
       >
         Metric:
       </label>
@@ -23,7 +23,7 @@ export function MetricSelector({
         id="metric-select"
         value={selectedMetric}
         onChange={(e) => onMetricChange(e.target.value as Metric)}
-        className="bg-gray-800 text-white border border-gray-600 rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs sm:text-sm"
+        className="bg-neutral-800 text-white border border-neutral-600 rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none text-xs sm:text-sm"
       >
         {METRICS.map((m) => {
           const cfg = METRIC_CONFIG[m];

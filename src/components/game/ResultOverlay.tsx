@@ -22,11 +22,11 @@ function MetricRow({ metric, active, valueA, valueB }: MetricRowProps) {
   return (
     <div
       className={`grid grid-cols-[1fr_5rem_1fr] gap-3 items-center text-xs sm:text-sm ${
-        active ? "text-white font-semibold" : "text-gray-500"
+        active ? "text-white font-semibold" : "text-neutral-500"
       }`}
     >
       <span className="text-right tabular-nums">{fmt(valueA)}</span>
-      <span className="text-center text-[10px] sm:text-xs uppercase tracking-wider text-gray-400">
+      <span className="text-center text-[10px] sm:text-xs uppercase tracking-wider text-neutral-400">
         {cfg.label}
       </span>
       <span className="text-left tabular-nums">{fmt(valueB)}</span>
@@ -38,7 +38,7 @@ export function ResultOverlay({ result, onNext }: ResultOverlayProps) {
   const activeCfg = METRIC_CONFIG[result.metric];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 p-3 md:p-4 animate-slide-up">
+    <div className="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-sm border-t border-neutral-700 p-3 md:p-4 animate-slide-up">
       <div className="max-w-4xl mx-auto">
         {/* Result status (centered) and Next button (pinned right on web) */}
         <div className="flex flex-col sm:flex-row sm:items-center mb-3 gap-3 sm:gap-0">
@@ -58,14 +58,14 @@ export function ResultOverlay({ result, onNext }: ResultOverlayProps) {
             >
               {result.isCorrect ? "Correct!" : "Incorrect"}
             </span>
-            <span className="text-xs text-gray-500 ml-2">
+            <span className="text-xs text-neutral-500 ml-2">
               ({activeCfg.label}: Δ {activeCfg.formatDiff(result.valueDifference)})
             </span>
           </div>
           <div className="sm:flex-1 sm:flex sm:justify-end flex justify-center">
             <button
               onClick={onNext}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm whitespace-nowrap"
+              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm whitespace-nowrap"
             >
               Next →
             </button>
@@ -78,16 +78,16 @@ export function ResultOverlay({ result, onNext }: ResultOverlayProps) {
             href={getScryfallCardUrl(result.cardAScryfallId)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-300 underline font-semibold text-right truncate"
+            className="text-purple-400 hover:text-purple-300 underline font-semibold text-right truncate"
           >
             {result.cardAName}
           </a>
-          <span className="text-gray-500 text-center">vs</span>
+          <span className="text-neutral-500 text-center">vs</span>
           <a
             href={getScryfallCardUrl(result.cardBScryfallId)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-300 underline font-semibold text-left truncate"
+            className="text-purple-400 hover:text-purple-300 underline font-semibold text-left truncate"
           >
             {result.cardBName}
           </a>
@@ -115,7 +115,7 @@ export function ResultOverlay({ result, onNext }: ResultOverlayProps) {
           />
         </div>
 
-        <p className="text-center text-gray-500 text-xs mt-3">
+        <p className="text-center text-neutral-500 text-xs mt-3">
           <span className="hidden sm:inline">Press Enter or Space to continue</span>
           <span className="sm:hidden">Tap Next to continue</span>
         </p>

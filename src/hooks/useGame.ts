@@ -50,7 +50,7 @@ function saveLocalStats(stats: {
   }
 }
 
-export function useGame(setCode: string, metric: Metric) {
+export function useGame(setCode: string | null, metric: Metric) {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user?.id;
 
@@ -106,6 +106,7 @@ export function useGame(setCode: string, metric: Metric) {
   // Set change: full reset + first fetch. Note: metric is intentionally NOT
   // a dep — see the metric-change effect below.
   useEffect(() => {
+    if (!setCode) return;
     let mounted = true;
 
     async function init() {
@@ -168,12 +169,13 @@ export function useGame(setCode: string, metric: Metric) {
   }, [metric]);
 
   useEffect(() => {
+    if (!setCode) return;
     if (pairQueue.length < 2 && !state.isLoading) {
       fetchPairs(3)
         .then((pairs) => setPairQueue((prev) => [...prev, ...pairs]))
         .catch(console.error);
     }
-  }, [pairQueue.length, state.isLoading, fetchPairs]);
+  }, [setCode, pairQueue.length, state.isLoading, fetchPairs]);
 
   const selectCard = useCallback(
     (cardId: string) => {
@@ -184,7 +186,7 @@ export function useGame(setCode: string, metric: Metric) {
   );
 
   const submitGuess = useCallback(async () => {
-    if (!state.currentPair || !state.selectedCardId || state.isSubmitting) {
+    if (!state.currentPair || !state.selectedCardId || state.isSubmitting || !setCode) {
       return;
     }
 

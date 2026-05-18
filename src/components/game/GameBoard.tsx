@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { DEFAULT_SET } from "@/lib/utils/constants";
 import { Metric, DEFAULT_METRIC, isMetric, metricInstruction } from "@/lib/metrics";
 import { useGame } from "@/hooks/useGame";
 import { CardPair } from "./CardPair";
@@ -12,8 +11,14 @@ import { MetricSelector } from "./MetricSelector";
 
 const METRIC_STORAGE_KEY = "iihguessr_metric";
 
+interface SetOption {
+  code: string;
+  name: string;
+}
+
 export function GameBoard() {
-  const [selectedSet, setSelectedSet] = useState(DEFAULT_SET);
+  const [sets, setSets] = useState<SetOption[]>([]);
+  const [selectedSet, setSelectedSet] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<Metric>(DEFAULT_METRIC);
 
   // Restore metric from localStorage on mount
@@ -21,6 +26,26 @@ export function GameBoard() {
     if (typeof window === "undefined") return;
     const stored = localStorage.getItem(METRIC_STORAGE_KEY);
     if (stored && isMetric(stored)) setSelectedMetric(stored);
+  }, []);
+
+  // Load the set list and default to the most recently released one
+  // (the API sorts by releaseDate desc).
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/sets")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!mounted) return;
+        const fetched: SetOption[] = (data.sets || []).map(
+          (s: { code: string; name: string }) => ({ code: s.code, name: s.name }),
+        );
+        setSets(fetched);
+        if (fetched.length > 0) setSelectedSet(fetched[0].code);
+      })
+      .catch(console.error);
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleMetricChange = useCallback((m: Metric) => {
@@ -98,6 +123,7 @@ export function GameBoard() {
       <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex flex-col gap-2 items-start">
           <SetSelector
+            sets={sets}
             selectedSet={selectedSet}
             onSetChange={setSelectedSet}
             dataAsOf={dataAsOf || undefined}
@@ -117,7 +143,7 @@ export function GameBoard() {
 
       {isLoading && (
         <div className="text-center py-12">
-          <div className="animate-pulse text-gray-400">Loading cards...</div>
+          <div className="animate-pulse text-neutral-400">Loading cards...</div>
         </div>
       )}
 
@@ -126,7 +152,7 @@ export function GameBoard() {
           <p className="text-red-400 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+            className="bg-neutral-700 hover:bg-neutral-600 text-white px-4 py-2 rounded-lg"
           >
             Retry
           </button>
@@ -135,7 +161,7 @@ export function GameBoard() {
 
       {currentPair && !isLoading && (
         <>
-          <p className="text-gray-400 text-center">
+          <p className="text-neutral-400 text-center">
             {metricInstruction(selectedMetric)}
           </p>
 
@@ -156,7 +182,7 @@ export function GameBoard() {
             <button
               onClick={submitGuess}
               disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
+              className="bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-600 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
             >
               {isSubmitting ? "Submitting..." : "Submit Guess"}
             </button>
