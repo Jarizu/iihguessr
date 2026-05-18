@@ -7,7 +7,7 @@ export default function GamePage() {
       <div className="max-w-4xl mx-auto">
         {/* Navigation */}
         <nav className="flex justify-between items-center mb-8">
-          <Link href="/" className="text-2xl font-bold text-purple-400 hover:text-purple-300">
+          <Link href="/" className="font-beleren text-2xl text-purple-400 hover:text-purple-300">
             IIHGuessr
           </Link>
           <div className="flex gap-4 text-sm">

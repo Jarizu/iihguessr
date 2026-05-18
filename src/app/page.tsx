@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8">
       <div className="max-w-2xl text-center space-y-8">
-        <h1 className="font-beleren text-5xl bg-gradient-to-r from-purple-400 to-fuchsia-500 bg-clip-text text-transparent">
+        <h1 className="font-beleren text-5xl bg-gradient-to-r from-purple-300 to-purple-600 bg-clip-text text-transparent">
           IIHGuessr
         </h1>
 

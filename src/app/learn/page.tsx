@@ -11,7 +11,7 @@ export default function LearnPage() {
           ← Back to Home
         </Link>
 
-        <h1 className="font-beleren text-4xl mb-8 bg-gradient-to-r from-purple-400 to-fuchsia-500 bg-clip-text text-transparent">
+        <h1 className="font-beleren text-4xl mb-8 bg-gradient-to-r from-purple-300 to-purple-600 bg-clip-text text-transparent">
           Understanding IWD (Improvement When Drawn)
         </h1>
 
