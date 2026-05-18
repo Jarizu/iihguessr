@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8">
       <div className="max-w-2xl text-center space-y-8">
-        <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-fuchsia-500 bg-clip-text text-transparent">
+        <h1 className="font-beleren text-5xl bg-gradient-to-r from-purple-400 to-fuchsia-500 bg-clip-text text-transparent">
           IIHGuessr
         </h1>
 
@@ -13,7 +13,7 @@ export default function Home() {
         </p>
 
         <div className="bg-neutral-800/50 rounded-lg p-6 text-left space-y-4">
-          <h2 className="text-lg font-semibold text-neutral-200">What is IIH?</h2>
+          <h2 className="font-beleren text-lg text-white">What is IIH?</h2>
           <p className="text-neutral-400">
             <strong className="text-neutral-200">IIH (Improvement In Hand)</strong> measures
             how much a card improves your win rate when you draw it. Data comes from
@@ -26,7 +26,7 @@ export default function Home() {
         </div>
 
         <div className="bg-neutral-800/50 rounded-lg p-6 text-left space-y-4">
-          <h2 className="text-lg font-semibold text-neutral-200">How to Play</h2>
+          <h2 className="font-beleren text-lg text-white">How to Play</h2>
           <ol className="text-neutral-400 space-y-2 list-decimal list-inside">
             <li>Two cards appear side-by-side</li>
             <li>Click the card you think has higher IIH</li>
@@ -53,7 +53,7 @@ export default function Home() {
         </div>
 
         <div className="bg-neutral-800/50 rounded-lg p-6 text-left space-y-4">
-          <h2 className="text-lg font-semibold text-neutral-200">
+          <h2 className="font-beleren text-lg text-white">
             Understanding IIH Limitations
           </h2>
           <div className="text-neutral-400 space-y-2 text-sm">

@@ -11,12 +11,12 @@ export default function LearnPage() {
           ← Back to Home
         </Link>
 
-        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-purple-400 to-purple-500 bg-clip-text text-transparent">
+        <h1 className="font-beleren text-4xl mb-8 bg-gradient-to-r from-purple-400 to-fuchsia-500 bg-clip-text text-transparent">
           Understanding IWD (Improvement When Drawn)
         </h1>
 
         <section className="mb-8 space-y-4">
-          <h2 className="text-2xl font-semibold text-neutral-200">What is IWD?</h2>
+          <h2 className="font-beleren text-2xl text-neutral-200">What is IWD?</h2>
           <p className="text-neutral-400">
             <strong className="text-neutral-200">IWD (Improvement When Drawn)</strong> is a
             statistical metric developed by 17lands.com that measures how much a card
@@ -44,7 +44,7 @@ export default function LearnPage() {
         </section>
 
         <section className="mb-8 space-y-4">
-          <h2 className="text-2xl font-semibold text-neutral-200">
+          <h2 className="font-beleren text-2xl text-neutral-200">
             IWD Limitations & Biases
           </h2>
 
@@ -121,7 +121,7 @@ export default function LearnPage() {
         </section>
 
         <section className="mb-8 space-y-4">
-          <h2 className="text-2xl font-semibold text-neutral-200">GIH WR vs IWD</h2>
+          <h2 className="font-beleren text-2xl text-neutral-200">GIH WR vs IWD</h2>
           <p className="text-neutral-400">
             This app also displays{" "}
             <strong className="text-neutral-200">GIH WR (Games In Hand Win Rate)</strong>,
@@ -149,7 +149,7 @@ export default function LearnPage() {
         </section>
 
         <section className="mb-8 space-y-4">
-          <h2 className="text-2xl font-semibold text-neutral-200">Learn More</h2>
+          <h2 className="font-beleren text-2xl text-neutral-200">Learn More</h2>
           <p className="text-neutral-400">
             All data in IIHGuessr comes from{" "}
             <a

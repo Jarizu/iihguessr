@@ -161,7 +161,7 @@ export function GameBoard() {
 
       {currentPair && !isLoading && (
         <>
-          <p className="text-neutral-400 text-center">
+          <p className="font-beleren text-white text-center text-lg sm:text-xl tracking-wide">
             {metricInstruction(selectedMetric)}
           </p>
 

@@ -78,7 +78,7 @@ export function ResultOverlay({ result, onNext }: ResultOverlayProps) {
             href={getScryfallCardUrl(result.cardAScryfallId)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-purple-400 hover:text-purple-300 underline font-semibold text-right truncate"
+            className="font-beleren text-purple-400 hover:text-purple-300 underline text-right truncate"
           >
             {result.cardAName}
           </a>
@@ -87,7 +87,7 @@ export function ResultOverlay({ result, onNext }: ResultOverlayProps) {
             href={getScryfallCardUrl(result.cardBScryfallId)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-purple-400 hover:text-purple-300 underline font-semibold text-left truncate"
+            className="font-beleren text-purple-400 hover:text-purple-300 underline text-left truncate"
           >
             {result.cardBName}
           </a>

@@ -2,6 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Beleren — MTG's signature serif. Self-hosted from /public/fonts.
+   Source: github.com/Saeris/typeface-beleren-bold */
+@font-face {
+  font-family: "Beleren";
+  src: url("/fonts/Beleren2016-Bold.woff") format("woff");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+@font-face {
+  font-family: "Beleren SmallCaps";
+  src: url("/fonts/Beleren2016SmallCaps-Bold.woff") format("woff");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+@font-face {
+  font-family: "Beleren SmallCaps";
+  src: url("/fonts/Beleren2016SmallCaps-BoldItalic.woff") format("woff");
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+/* Beleren as a utility class for headings / card-name accents. Body text
+   stays in system-ui for readability. */
+.font-beleren {
+  font-family: "Beleren", "Cinzel", Georgia, serif;
+  letter-spacing: 0.01em;
+}
+.font-beleren-smallcaps {
+  font-family: "Beleren SmallCaps", "Beleren", "Cinzel", Georgia, serif;
+  letter-spacing: 0.02em;
+}
+
 :root {
   --background: #000000;
   --foreground: #ffffff;

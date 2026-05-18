@@ -49,7 +49,7 @@ export default function ReviewPage() {
     return (
       <main className="min-h-screen p-4 md:p-8">
         <div className="max-w-4xl mx-auto text-center py-12">
-          <h2 className="text-2xl font-bold text-neutral-200 mb-4">Sign In Required</h2>
+          <h2 className="font-beleren text-2xl text-neutral-200 mb-4">Sign In Required</h2>
           <p className="text-neutral-400 mb-6">Sign in to review your mistakes.</p>
           <a
             href="/api/auth/signin"
@@ -67,7 +67,7 @@ export default function ReviewPage() {
       <div className="max-w-4xl mx-auto">
         {/* Navigation */}
         <nav className="flex justify-between items-center mb-8">
-          <Link href="/" className="text-2xl font-bold text-purple-400 hover:text-purple-300">
+          <Link href="/" className="font-beleren text-2xl text-purple-400 hover:text-purple-300">
             IIHGuessr
           </Link>
           <div className="flex gap-4 text-sm">
@@ -81,7 +81,7 @@ export default function ReviewPage() {
         </nav>
 
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-neutral-200">Review Mistakes</h1>
+          <h1 className="font-beleren text-3xl text-neutral-200">Review Mistakes</h1>
 
           {/* Sort toggle */}
           <div className="flex rounded-lg overflow-hidden border border-neutral-600">

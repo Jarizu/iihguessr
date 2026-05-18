@@ -47,7 +47,7 @@ export default function StatsPage() {
     return (
       <main className="min-h-screen p-4 md:p-8">
         <div className="max-w-4xl mx-auto text-center py-12">
-          <h2 className="text-2xl font-bold text-neutral-200 mb-4">Sign In Required</h2>
+          <h2 className="font-beleren text-2xl text-neutral-200 mb-4">Sign In Required</h2>
           <p className="text-neutral-400 mb-6">Sign in to view your stats.</p>
           <a
             href="/api/auth/signin"
@@ -65,7 +65,7 @@ export default function StatsPage() {
       <div className="max-w-4xl mx-auto">
         {/* Navigation */}
         <nav className="flex justify-between items-center mb-8">
-          <Link href="/" className="text-2xl font-bold text-purple-400 hover:text-purple-300">
+          <Link href="/" className="font-beleren text-2xl text-purple-400 hover:text-purple-300">
             IIHGuessr
           </Link>
           <div className="flex gap-4 text-sm">
@@ -78,7 +78,7 @@ export default function StatsPage() {
           </div>
         </nav>
 
-        <h1 className="text-3xl font-bold text-neutral-200 mb-8">Your Statistics</h1>
+        <h1 className="font-beleren text-3xl text-neutral-200 mb-8">Your Statistics</h1>
 
         {isLoading && (
           <div className="text-center py-12">
@@ -115,7 +115,7 @@ export default function StatsPage() {
             {/* Set breakdown */}
             {Object.keys(stats.setBreakdown).length > 0 && (
               <div className="bg-neutral-800/50 rounded-lg p-6">
-                <h2 className="text-xl font-semibold text-neutral-200 mb-4">Per-Set Performance</h2>
+                <h2 className="font-beleren text-xl text-neutral-200 mb-4">Per-Set Performance</h2>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
@@ -154,7 +154,7 @@ export default function StatsPage() {
             {/* Per-metric breakdown */}
             {stats.metricBreakdown && Object.keys(stats.metricBreakdown).length > 0 && (
               <div className="bg-neutral-800/50 rounded-lg p-6">
-                <h2 className="text-xl font-semibold text-neutral-200 mb-4">Per-Metric Performance</h2>
+                <h2 className="font-beleren text-xl text-neutral-200 mb-4">Per-Metric Performance</h2>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
@@ -197,7 +197,7 @@ export default function StatsPage() {
             {/* Biggest miss */}
             {stats.biggestMiss && (
               <div className="bg-neutral-800/50 rounded-lg p-6">
-                <h2 className="text-xl font-semibold text-neutral-200 mb-4">
+                <h2 className="font-beleren text-xl text-neutral-200 mb-4">
                   Biggest Miss
                   <span className="ml-2 text-sm text-neutral-500">
                     ({METRIC_CONFIG[stats.biggestMiss.metric]?.label || stats.biggestMiss.metric})

@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+            <h1 className="font-beleren text-3xl sm:text-4xl text-white mb-2">
               {cfg.label} Analytics
             </h1>
             <p className="text-neutral-400">
@@ -195,7 +195,7 @@ export default function AnalyticsPage() {
             {/* Chart 1: vs Mana Value */}
             <div className="bg-neutral-800/50 rounded-lg p-6 space-y-4">
               <div>
-                <h2 className="text-2xl font-bold text-white mb-2">
+                <h2 className="font-beleren text-2xl text-white mb-2">
                   {cfg.label} vs. Mana Value
                 </h2>
                 {selectedMetric === "IIH" && (
@@ -254,7 +254,7 @@ export default function AnalyticsPage() {
             {/* Chart 2: vs GP% */}
             <div className="bg-neutral-800/50 rounded-lg p-6 space-y-4">
               <div>
-                <h2 className="text-2xl font-bold text-white mb-2">
+                <h2 className="font-beleren text-2xl text-white mb-2">
                   {cfg.label} vs. Games Played %
                 </h2>
                 {selectedMetric === "IIH" && (
@@ -312,7 +312,7 @@ export default function AnalyticsPage() {
             {/* Chart 3: Archetype */}
             <div className="bg-neutral-800/50 rounded-lg p-6 space-y-4">
               <div>
-                <h2 className="text-2xl font-bold text-white mb-2">
+                <h2 className="font-beleren text-2xl text-white mb-2">
                   {cfg.label} by Color Pair
                 </h2>
                 {selectedMetric === "IIH" && (

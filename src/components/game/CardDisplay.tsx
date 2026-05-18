@@ -76,7 +76,7 @@ export function CardDisplay({
         )}
       </div>
 
-      <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-center font-medium text-neutral-200 w-full truncate px-1">
+      <p className="font-beleren mt-1 sm:mt-2 text-xs sm:text-sm text-center text-white w-full truncate px-1">
         {card.name}
       </p>
 
