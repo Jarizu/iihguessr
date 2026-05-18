@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { MistakeItem } from "@/types";
+import { METRIC_CONFIG, correctCardId as pickCorrectId } from "@/lib/metrics";
 
 export default function ReviewPage() {
   const { data: session, status } = useSession();
@@ -144,15 +145,24 @@ export default function ReviewPage() {
 }
 
 function MistakeCard({ mistake }: { mistake: MistakeItem }) {
+  const cfg = METRIC_CONFIG[mistake.metric];
   const selectedCard =
     mistake.selectedCardId === mistake.cardA.id ? mistake.cardA : mistake.cardB;
+  const correctId = pickCorrectId(
+    mistake.metric,
+    mistake.cardA.id,
+    mistake.cardA.value,
+    mistake.cardB.id,
+    mistake.cardB.value,
+  );
   const correctCard =
-    mistake.cardA.iih >= mistake.cardB.iih ? mistake.cardA : mistake.cardB;
+    correctId === mistake.cardA.id ? mistake.cardA : mistake.cardB;
+
+  const isABetter = correctId === mistake.cardA.id;
 
   return (
     <div className="bg-gray-800/50 rounded-lg p-4 md:p-6">
       <div className="flex flex-col md:flex-row gap-4">
-        {/* Cards */}
         <div className="flex gap-4 justify-center">
           <div className="flex flex-col items-center">
             <div
@@ -177,12 +187,10 @@ function MistakeCard({ mistake }: { mistake: MistakeItem }) {
             </p>
             <p
               className={`text-sm font-bold ${
-                mistake.cardA.iih >= mistake.cardB.iih
-                  ? "text-green-400"
-                  : "text-gray-300"
+                isABetter ? "text-green-400" : "text-gray-300"
               }`}
             >
-              {(mistake.cardA.iih * 100).toFixed(1)}%
+              {cfg.format(mistake.cardA.value)}
             </p>
           </div>
 
@@ -213,17 +221,14 @@ function MistakeCard({ mistake }: { mistake: MistakeItem }) {
             </p>
             <p
               className={`text-sm font-bold ${
-                mistake.cardB.iih >= mistake.cardA.iih
-                  ? "text-green-400"
-                  : "text-gray-300"
+                !isABetter ? "text-green-400" : "text-gray-300"
               }`}
             >
-              {(mistake.cardB.iih * 100).toFixed(1)}%
+              {cfg.format(mistake.cardB.value)}
             </p>
           </div>
         </div>
 
-        {/* Info */}
         <div className="flex-1 flex flex-col justify-center text-sm">
           <p className="text-gray-400">
             You picked: <span className="text-red-400 font-medium">{selectedCard.name}</span>
@@ -232,10 +237,10 @@ function MistakeCard({ mistake }: { mistake: MistakeItem }) {
             Correct: <span className="text-green-400 font-medium">{correctCard.name}</span>
           </p>
           <p className="text-yellow-400 mt-2">
-            Difference: {(mistake.iihDifference * 100).toFixed(1)}pp
+            Difference: {cfg.formatDiff(mistake.valueDifference)}
           </p>
           <p className="text-gray-500 text-xs mt-2">
-            {mistake.setCode} | {new Date(mistake.createdAt).toLocaleDateString()}
+            {mistake.setCode.toUpperCase()} | {cfg.label} | {new Date(mistake.createdAt).toLocaleDateString()}
           </p>
         </div>
       </div>

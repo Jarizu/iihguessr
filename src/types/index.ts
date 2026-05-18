@@ -1,3 +1,5 @@
+import type { Metric } from "@/lib/metrics";
+
 // Card types
 export interface CardDisplay {
   id: string;
@@ -11,8 +13,9 @@ export interface CardDisplay {
   manaCost: string | null;
 }
 
-export interface CardWithIwd extends CardDisplay {
-  iih: number;
+export interface CardWithValue extends CardDisplay {
+  value: number;
+  metric: Metric;
 }
 
 // Game types
@@ -33,21 +36,29 @@ export interface GuessRequest {
   selectedCardId: string;
   setCode: string;
   format: string;
+  metric: Metric;
 }
 
 export interface GuessResponse {
   isCorrect: boolean;
-  cardAIih: number;
-  cardBIih: number;
-  cardAGihWr: number;
-  cardBGihWr: number;
+  metric: Metric;
+  // Primary metric values used to determine correctness
+  cardAValue: number;
+  cardBValue: number;
+  valueDifference: number;
+  // Full triple of metrics for display in the result overlay
+  cardAIih: number | null;
+  cardBIih: number | null;
+  cardAGihWr: number | null;
+  cardBGihWr: number | null;
+  cardAAlsa: number | null;
+  cardBAlsa: number | null;
   cardAName: string;
   cardBName: string;
   cardAScryfallId: string;
   cardBScryfallId: string;
   setCode: string;
   correctCardId: string;
-  iihDifference: number;
   newStreak: number;
   newTotal: number;
   newAccuracy: number;
@@ -60,6 +71,12 @@ export interface SetStats {
   accuracy: number;
 }
 
+export interface MetricStats {
+  total: number;
+  correct: number;
+  accuracy: number;
+}
+
 export interface StatsResponse {
   totalGuesses: number;
   correctGuesses: number;
@@ -67,35 +84,30 @@ export interface StatsResponse {
   currentStreak: number;
   bestStreak: number;
   setBreakdown: Record<string, SetStats>;
+  metricBreakdown: Record<Metric, MetricStats>;
   biggestMiss?: {
-    cardA: { name: string; iih: number };
-    cardB: { name: string; iih: number };
+    cardA: { name: string; value: number };
+    cardB: { name: string; value: number };
     selectedName: string;
     difference: number;
+    metric: Metric;
     date: string;
   };
 }
 
 export interface MistakeItem {
   id: string;
-  cardA: CardWithIwd;
-  cardB: CardWithIwd;
+  cardA: CardWithValue;
+  cardB: CardWithValue;
   selectedCardId: string;
-  iihDifference: number;
+  valueDifference: number;
+  metric: Metric;
   createdAt: string;
   setCode: string;
 }
 
 // Format and set types
 export type DraftFormat = "PremierDraft";
-
-export interface SupportedSet {
-  code: string;
-  name: string;
-  releaseDate: string;
-  dataStartDate: string;
-  dataEndDate: string;
-}
 
 // 17lands API types
 export interface SeventeenLandsCard {
@@ -120,6 +132,22 @@ export interface SeventeenLandsCard {
 }
 
 // Scryfall API types
+export interface ScryfallSet {
+  code: string;
+  name: string;
+  released_at: string;
+  set_type: string;
+  parent_set_code?: string;
+  digital: boolean;
+  card_count: number;
+}
+
+export interface ScryfallSetsResponse {
+  object: string;
+  has_more: boolean;
+  data: ScryfallSet[];
+}
+
 export interface ScryfallCard {
   id: string;
   name: string;

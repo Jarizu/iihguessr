@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { CardDisplay as CardDisplayType } from "@/types";
 import { getColorClass } from "@/lib/utils/colors";
+import { Metric, METRIC_CONFIG } from "@/lib/metrics";
 
 interface CardDisplayProps {
   card: CardDisplayType;
@@ -10,7 +11,9 @@ interface CardDisplayProps {
   result?: "correct" | "incorrect" | null;
   disabled?: boolean;
   onClick?: () => void;
-  showIwd?: number | null;
+  // When showValue is set, render the value as a colored chip below the card.
+  showValue?: number | null;
+  metric?: Metric;
 }
 
 export function CardDisplay({
@@ -19,9 +22,11 @@ export function CardDisplay({
   result = null,
   disabled = false,
   onClick,
-  showIwd,
+  showValue,
+  metric,
 }: CardDisplayProps) {
-  const colorClass = getColorClass(card.colors);
+  // Color reserved for future use (kept to preserve existing styles via util import).
+  getColorClass(card.colors);
 
   const getBorderClass = () => {
     if (result === "correct") return "ring-4 ring-green-500";
@@ -30,6 +35,12 @@ export function CardDisplay({
     return "ring-2 ring-gray-600 hover:ring-blue-400";
   };
 
+  const cfg = metric ? METRIC_CONFIG[metric] : null;
+  // Color logic: for higher-is-better, positive values are "good"; for ALSA,
+  // a lower value is good. We just always show neutral coloring in the chip
+  // and rely on the result ring for correctness signaling.
+  const showChip = showValue !== null && showValue !== undefined && cfg;
+
   return (
     <div
       className={`relative flex flex-col items-center transition-all duration-200 w-full ${
@@ -37,7 +48,6 @@ export function CardDisplay({
       }`}
       onClick={disabled ? undefined : onClick}
     >
-      {/* Card image */}
       <div
         className={`relative rounded-lg overflow-hidden ${getBorderClass()} transition-all duration-200 w-full max-w-[244px]`}
       >
@@ -49,14 +59,10 @@ export function CardDisplay({
           className="object-cover w-full h-auto"
           priority
         />
-
-        {/* Result overlay */}
         {result && (
           <div
             className={`absolute inset-0 flex items-center justify-center ${
-              result === "correct"
-                ? "bg-green-500/20"
-                : "bg-red-500/20"
+              result === "correct" ? "bg-green-500/20" : "bg-red-500/20"
             }`}
           >
             <span
@@ -70,20 +76,13 @@ export function CardDisplay({
         )}
       </div>
 
-      {/* Card name */}
       <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-center font-medium text-gray-200 w-full truncate px-1">
         {card.name}
       </p>
 
-      {/* IWD value (shown after reveal) */}
-      {showIwd !== null && showIwd !== undefined && (
-        <div
-          className={`mt-1 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-bold ${
-            showIwd >= 0 ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-          }`}
-        >
-          {showIwd >= 0 ? "+" : ""}
-          {(showIwd * 100).toFixed(1)}% IWD
+      {showChip && (
+        <div className="mt-1 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-bold bg-gray-800 text-gray-200">
+          {cfg!.format(showValue!)} {cfg!.label}
         </div>
       )}
     </div>

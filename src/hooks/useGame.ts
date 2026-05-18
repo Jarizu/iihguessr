@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { CardPair, GuessRequest, GuessResponse } from "@/types";
+import { Metric } from "@/lib/metrics";
 
 interface GameState {
   currentPair: CardPair | null;
@@ -28,25 +29,28 @@ function loadLocalStats() {
   }
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
+    if (stored) return JSON.parse(stored);
   } catch {
-    // Ignore errors
+    // ignore
   }
   return { currentStreak: 0, bestStreak: 0, total: 0, correct: 0 };
 }
 
-function saveLocalStats(stats: { currentStreak: number; bestStreak: number; total: number; correct: number }) {
+function saveLocalStats(stats: {
+  currentStreak: number;
+  bestStreak: number;
+  total: number;
+  correct: number;
+}) {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
   } catch {
-    // Ignore errors
+    // ignore
   }
 }
 
-export function useGame(setCode: string) {
+export function useGame(setCode: string, metric: Metric) {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user?.id;
 
@@ -62,7 +66,10 @@ export function useGame(setCode: string) {
       stats: {
         currentStreak: localStats.currentStreak,
         bestStreak: localStats.bestStreak,
-        accuracy: localStats.total > 0 ? (localStats.correct / localStats.total) * 100 : 0,
+        accuracy:
+          localStats.total > 0
+            ? (localStats.correct / localStats.total) * 100
+            : 0,
         total: localStats.total,
         correct: localStats.correct,
       },
@@ -72,43 +79,47 @@ export function useGame(setCode: string) {
   const [pairQueue, setPairQueue] = useState<CardPair[]>([]);
   const [dataAsOf, setDataAsOf] = useState<string | null>(null);
 
-  // Fetch new pairs
-  const fetchPairs = useCallback(async (count: number = 3) => {
-    try {
+  const fetchPairs = useCallback(
+    async (count: number = 3) => {
       const response = await fetch(
-        `/api/cards/pair?set=${setCode}&count=${count}`
+        `/api/cards/pair?set=${setCode}&metric=${metric}&count=${count}`,
       );
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || "Failed to fetch card pairs");
       }
-
       const data = await response.json();
       setDataAsOf(data.dataAsOf);
       return data.pairs as CardPair[];
-    } catch (error) {
-      throw error;
-    }
-  }, [setCode]);
+    },
+    [setCode, metric],
+  );
 
-  // Initialize game
+  // Re-init game when set or metric changes
   useEffect(() => {
     let mounted = true;
 
     async function init() {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+      setState((prev) => ({
+        ...prev,
+        isLoading: true,
+        error: null,
+        currentPair: null,
+        selectedCardId: null,
+        result: null,
+      }));
+      setPairQueue([]);
 
       try {
         const pairs = await fetchPairs(3);
-
         if (!mounted) return;
 
         if (pairs.length === 0) {
           setState((prev) => ({
             ...prev,
             isLoading: false,
-            error: "No card data available for this set. Try syncing first.",
+            error:
+              "No card data available for this set/metric. Try syncing first.",
           }));
           return;
         }
@@ -118,7 +129,6 @@ export function useGame(setCode: string) {
           currentPair: pairs[0],
           isLoading: false,
         }));
-
         setPairQueue(pairs.slice(1));
       } catch (error) {
         if (!mounted) return;
@@ -131,28 +141,27 @@ export function useGame(setCode: string) {
     }
 
     init();
-
     return () => {
       mounted = false;
     };
-  }, [fetchPairs, setCode]);
+  }, [fetchPairs, setCode, metric]);
 
-  // Refill pair queue when it gets low
   useEffect(() => {
     if (pairQueue.length < 2 && !state.isLoading) {
-      fetchPairs(3).then((pairs) => {
-        setPairQueue((prev) => [...prev, ...pairs]);
-      }).catch(console.error);
+      fetchPairs(3)
+        .then((pairs) => setPairQueue((prev) => [...prev, ...pairs]))
+        .catch(console.error);
     }
   }, [pairQueue.length, state.isLoading, fetchPairs]);
 
-  // Select a card
-  const selectCard = useCallback((cardId: string) => {
-    if (state.result || state.isSubmitting) return;
-    setState((prev) => ({ ...prev, selectedCardId: cardId }));
-  }, [state.result, state.isSubmitting]);
+  const selectCard = useCallback(
+    (cardId: string) => {
+      if (state.result || state.isSubmitting) return;
+      setState((prev) => ({ ...prev, selectedCardId: cardId }));
+    },
+    [state.result, state.isSubmitting],
+  );
 
-  // Submit guess
   const submitGuess = useCallback(async () => {
     if (!state.currentPair || !state.selectedCardId || state.isSubmitting) {
       return;
@@ -166,6 +175,7 @@ export function useGame(setCode: string) {
       selectedCardId: state.selectedCardId,
       setCode,
       format: "PremierDraft",
+      metric,
     };
 
     try {
@@ -182,8 +192,6 @@ export function useGame(setCode: string) {
 
       const result: GuessResponse = await response.json();
 
-      // For authenticated users, use server stats
-      // For anonymous users, track locally
       if (isAuthenticated) {
         setState((prev) => ({
           ...prev,
@@ -198,7 +206,6 @@ export function useGame(setCode: string) {
           },
         }));
       } else {
-        // Update local stats for anonymous users
         setState((prev) => {
           const newTotal = prev.stats.total + 1;
           const newCorrect = prev.stats.correct + (result.isCorrect ? 1 : 0);
@@ -211,8 +218,6 @@ export function useGame(setCode: string) {
             total: newTotal,
             correct: newCorrect,
           };
-
-          // Save to localStorage
           saveLocalStats(newStats);
 
           return {
@@ -238,9 +243,15 @@ export function useGame(setCode: string) {
         error: error instanceof Error ? error.message : "Failed to submit guess",
       }));
     }
-  }, [state.currentPair, state.selectedCardId, state.isSubmitting, setCode, isAuthenticated]);
+  }, [
+    state.currentPair,
+    state.selectedCardId,
+    state.isSubmitting,
+    setCode,
+    metric,
+    isAuthenticated,
+  ]);
 
-  // Move to next pair
   const nextPair = useCallback(() => {
     if (pairQueue.length === 0) {
       setState((prev) => ({

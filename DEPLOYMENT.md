@@ -58,6 +58,10 @@ NEXTAUTH_SECRET=<generate-new-secret>
 # Google OAuth (same as local)
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Required for /api/sync and /api/sync/discover. Vercel Cron sends this
+# automatically as `Authorization: Bearer $CRON_SECRET`.
+CRON_SECRET=<generate-with-openssl-rand-hex-32>
 ```
 
 To generate `NEXTAUTH_SECRET`:
@@ -90,15 +94,22 @@ vercel env exec -- npx prisma migrate deploy
 
 ## Step 6: Seed Database with Card Data
 
-You'll need to populate the database with card data from 17lands and Scryfall:
+After the first deploy:
 
 ```bash
-# This should be run once to populate all cards
-# You may want to create a separate script or endpoint for this
-npm run sync
+# 1. Seed the SetMetadata table from the static list
+npx tsx prisma/seed.ts
+
+# 2. Sync card data for every seeded set (requires CRON_SECRET in env)
+curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://iihguessr.com/api/sync
+
+# 3. Backfill any bonus sheets (STA-in-STX, etc.)
+npx tsx scripts/backfill-bonus-sheets.ts
 ```
 
-Or create an admin endpoint at `/api/admin/sync` that you can call once after deployment.
+After that, the daily cron at `/api/sync/discover` (defined in `vercel.json`)
+picks up new sets and bonus sheets automatically — no manual work to add
+future MTG releases.
 
 ## Step 7: Configure Domain
 
@@ -149,7 +160,7 @@ For a fresh start (recommended):
 
 1. **Database**: Monitor usage in Neon dashboard
 2. **Vercel**: Check deployment logs and analytics
-3. **17lands Data**: Consider setting up a cron job to update card data weekly
+3. **17lands Data**: The daily cron at `/api/sync/discover` (06:00 UTC) finds new sets and ingests their card data. Existing sets can be refreshed by calling `POST /api/sync` with the `CRON_SECRET` Bearer token.
 
 ## Troubleshooting
 

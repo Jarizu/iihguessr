@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { StatsResponse } from "@/types";
+import { METRIC_CONFIG, Metric } from "@/lib/metrics";
 
 export default function StatsPage() {
   const { data: session, status } = useSession();
@@ -150,24 +151,72 @@ export default function StatsPage() {
               </div>
             )}
 
+            {/* Per-metric breakdown */}
+            {stats.metricBreakdown && Object.keys(stats.metricBreakdown).length > 0 && (
+              <div className="bg-gray-800/50 rounded-lg p-6">
+                <h2 className="text-xl font-semibold text-gray-200 mb-4">Per-Metric Performance</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-700">
+                        <th className="py-2 text-gray-400">Metric</th>
+                        <th className="py-2 text-gray-400 text-right">Guesses</th>
+                        <th className="py-2 text-gray-400 text-right">Correct</th>
+                        <th className="py-2 text-gray-400 text-right">Accuracy</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(Object.entries(stats.metricBreakdown) as [Metric, { total: number; correct: number; accuracy: number }][]).map(
+                        ([metric, mStats]) => (
+                          <tr key={metric} className="border-b border-gray-800">
+                            <td className="py-3 text-gray-200 font-medium">
+                              {METRIC_CONFIG[metric]?.label || metric}
+                            </td>
+                            <td className="py-3 text-gray-300 text-right">{mStats.total}</td>
+                            <td className="py-3 text-gray-300 text-right">{mStats.correct}</td>
+                            <td
+                              className={`py-3 text-right font-medium ${
+                                mStats.accuracy >= 70
+                                  ? "text-green-400"
+                                  : mStats.accuracy >= 50
+                                    ? "text-yellow-400"
+                                    : "text-red-400"
+                              }`}
+                            >
+                              {mStats.accuracy.toFixed(1)}%
+                            </td>
+                          </tr>
+                        ),
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* Biggest miss */}
             {stats.biggestMiss && (
               <div className="bg-gray-800/50 rounded-lg p-6">
-                <h2 className="text-xl font-semibold text-gray-200 mb-4">Biggest Miss</h2>
+                <h2 className="text-xl font-semibold text-gray-200 mb-4">
+                  Biggest Miss
+                  <span className="ml-2 text-sm text-gray-500">
+                    ({METRIC_CONFIG[stats.biggestMiss.metric]?.label || stats.biggestMiss.metric})
+                  </span>
+                </h2>
                 <div className="text-gray-300">
                   <p>
                     You picked <span className="font-bold text-red-400">{stats.biggestMiss.selectedName}</span>
                   </p>
                   <p className="mt-2">
                     <span className="text-gray-400">Card A:</span> {stats.biggestMiss.cardA.name} (
-                    {(stats.biggestMiss.cardA.iih * 100).toFixed(1)}%)
+                    {METRIC_CONFIG[stats.biggestMiss.metric]?.format(stats.biggestMiss.cardA.value)})
                   </p>
                   <p>
                     <span className="text-gray-400">Card B:</span> {stats.biggestMiss.cardB.name} (
-                    {(stats.biggestMiss.cardB.iih * 100).toFixed(1)}%)
+                    {METRIC_CONFIG[stats.biggestMiss.metric]?.format(stats.biggestMiss.cardB.value)})
                   </p>
                   <p className="mt-2 text-yellow-400">
-                    Difference: {(stats.biggestMiss.difference * 100).toFixed(1)}pp
+                    Difference: {METRIC_CONFIG[stats.biggestMiss.metric]?.formatDiff(stats.biggestMiss.difference)}
                   </p>
                 </div>
               </div>

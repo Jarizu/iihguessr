@@ -1,7 +1,12 @@
 "use client";
 
-import { SUPPORTED_SETS } from "@/lib/utils/constants";
+import { useEffect, useState } from "react";
 import { get17LandsSetUrl } from "@/lib/utils/17lands-urls";
+
+interface SetOption {
+  code: string;
+  name: string;
+}
 
 interface SetSelectorProps {
   selectedSet: string;
@@ -14,11 +19,34 @@ export function SetSelector({
   onSetChange,
   dataAsOf,
 }: SetSelectorProps) {
+  const [sets, setSets] = useState<SetOption[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/sets")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!mounted) return;
+        setSets(
+          (data.sets || []).map((s: { code: string; name: string }) => ({
+            code: s.code,
+            name: s.name,
+          })),
+        );
+      })
+      .catch(console.error);
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className="flex flex-col gap-2 items-start w-full sm:w-auto">
-      {/* Set selector */}
       <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-        <label htmlFor="set-select" className="text-gray-400 text-sm whitespace-nowrap">
+        <label
+          htmlFor="set-select"
+          className="text-gray-400 text-sm whitespace-nowrap"
+        >
           Set:
         </label>
         <select
@@ -26,9 +54,9 @@ export function SetSelector({
           value={selectedSet}
           onChange={(e) => onSetChange(e.target.value)}
           className="bg-gray-800 text-white border border-gray-600 rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs sm:text-sm min-w-0"
-          style={{ maxWidth: 'calc(100vw - 120px)' }}
+          style={{ maxWidth: "calc(100vw - 120px)" }}
         >
-          {SUPPORTED_SETS.map((set) => (
+          {sets.map((set) => (
             <option key={set.code} value={set.code}>
               {set.name} ({set.code.toUpperCase()})
             </option>
@@ -44,7 +72,6 @@ export function SetSelector({
         </a>
       </div>
 
-      {/* Data timestamp */}
       {dataAsOf && (
         <span className="text-gray-500 text-xs">
           Data as of {new Date(dataAsOf).toLocaleDateString()}
