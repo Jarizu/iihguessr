@@ -11,8 +11,6 @@ interface CardPairProps {
   resultB?: "correct" | "incorrect" | null;
   disabled?: boolean;
   onSelect: (cardId: string) => void;
-  iihA?: number | null;
-  iihB?: number | null;
 }
 
 export function CardPair({
@@ -23,8 +21,6 @@ export function CardPair({
   resultB = null,
   disabled = false,
   onSelect,
-  iihA = null,
-  iihB = null,
 }: CardPairProps) {
   return (
     <div className="flex flex-row gap-2 sm:gap-4 md:gap-8 items-start justify-center w-full px-2 sm:px-0">
@@ -35,7 +31,6 @@ export function CardPair({
           result={resultA}
           disabled={disabled}
           onClick={() => onSelect(cardA.id)}
-          showIwd={iihA}
         />
         <span className="hidden md:block text-gray-500 text-xs mt-2">
           Press 1 or click
@@ -53,7 +48,6 @@ export function CardPair({
           result={resultB}
           disabled={disabled}
           onClick={() => onSelect(cardB.id)}
-          showIwd={iihB}
         />
         <span className="hidden md:block text-gray-500 text-xs mt-2">
           Press 2 or click
