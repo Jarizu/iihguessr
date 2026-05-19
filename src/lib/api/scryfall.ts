@@ -2,15 +2,26 @@ import { ScryfallCard, ScryfallSearchResponse } from "@/types";
 import { SCRYFALL_BASE_URL } from "@/lib/utils/constants";
 
 /**
- * Fetch all cards from a set via Scryfall search API
- * Handles pagination automatically
+ * Fetch all cards from a set via Scryfall search API. Handles pagination
+ * automatically. Tries the booster-only filter first; if it returns zero
+ * results, retries without the filter to catch bonus sheets (whose cards
+ * Scryfall considers as appearing in the parent set's boosters).
  */
 export async function fetchSetCards(setCode: string): Promise<ScryfallCard[]> {
+  const primary = await searchCardsInSet(setCode, true);
+  if (primary.length > 0) return primary;
+  return searchCardsInSet(setCode, false);
+}
+
+async function searchCardsInSet(
+  setCode: string,
+  boosterOnly: boolean,
+): Promise<ScryfallCard[]> {
   const allCards: ScryfallCard[] = [];
-  let url = `${SCRYFALL_BASE_URL}/cards/search?q=set:${setCode.toLowerCase()}+is:booster&unique=cards`;
+  const filter = boosterOnly ? "+is:booster" : "";
+  let url = `${SCRYFALL_BASE_URL}/cards/search?q=set:${setCode.toLowerCase()}${filter}&unique=cards`;
 
   while (url) {
-    // Respect Scryfall rate limit (50-100ms between requests)
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const response = await fetch(url, {
@@ -21,17 +32,12 @@ export async function fetchSetCards(setCode: string): Promise<ScryfallCard[]> {
     });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        // No cards found for this set
-        return [];
-      }
+      if (response.status === 404) return [];
       throw new Error(`Scryfall API error: ${response.status} ${response.statusText}`);
     }
 
     const data: ScryfallSearchResponse = await response.json();
     allCards.push(...data.data);
-
-    // Check for more pages
     url = data.has_more && data.next_page ? data.next_page : "";
   }
 

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { MistakeItem } from "@/types";
+import { METRIC_CONFIG, correctCardId as pickCorrectId } from "@/lib/metrics";
 
 export default function ReviewPage() {
   const { data: session, status } = useSession();
@@ -38,7 +39,7 @@ export default function ReviewPage() {
     return (
       <main className="min-h-screen p-4 md:p-8">
         <div className="max-w-4xl mx-auto text-center py-12">
-          <div className="animate-pulse text-gray-400">Loading...</div>
+          <div className="animate-pulse text-neutral-400">Loading...</div>
         </div>
       </main>
     );
@@ -48,11 +49,11 @@ export default function ReviewPage() {
     return (
       <main className="min-h-screen p-4 md:p-8">
         <div className="max-w-4xl mx-auto text-center py-12">
-          <h2 className="text-2xl font-bold text-gray-200 mb-4">Sign In Required</h2>
-          <p className="text-gray-400 mb-6">Sign in to review your mistakes.</p>
+          <h2 className="font-beleren text-2xl text-neutral-200 mb-4">Sign In Required</h2>
+          <p className="text-neutral-400 mb-6">Sign in to review your mistakes.</p>
           <a
             href="/api/auth/signin"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg"
+            className="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg"
           >
             Sign In
           </a>
@@ -66,30 +67,30 @@ export default function ReviewPage() {
       <div className="max-w-4xl mx-auto">
         {/* Navigation */}
         <nav className="flex justify-between items-center mb-8">
-          <Link href="/" className="text-2xl font-bold text-blue-400 hover:text-blue-300">
+          <Link href="/" className="font-beleren text-2xl text-purple-400 hover:text-purple-300">
             IIHGuessr
           </Link>
           <div className="flex gap-4 text-sm">
-            <Link href="/game" className="text-gray-400 hover:text-gray-200">
+            <Link href="/game" className="text-neutral-400 hover:text-neutral-200">
               Play
             </Link>
-            <Link href="/stats" className="text-gray-400 hover:text-gray-200">
+            <Link href="/stats" className="text-neutral-400 hover:text-neutral-200">
               Stats
             </Link>
           </div>
         </nav>
 
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-200">Review Mistakes</h1>
+          <h1 className="font-beleren text-3xl text-neutral-200">Review Mistakes</h1>
 
           {/* Sort toggle */}
-          <div className="flex rounded-lg overflow-hidden border border-gray-600">
+          <div className="flex rounded-lg overflow-hidden border border-neutral-600">
             <button
               onClick={() => setSort("difference")}
               className={`px-3 py-2 text-sm transition-colors ${
                 sort === "difference"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                  ? "bg-purple-600 text-white"
+                  : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
               }`}
             >
               Most Wrong
@@ -98,8 +99,8 @@ export default function ReviewPage() {
               onClick={() => setSort("recent")}
               className={`px-3 py-2 text-sm transition-colors ${
                 sort === "recent"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                  ? "bg-purple-600 text-white"
+                  : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
               }`}
             >
               Most Recent
@@ -109,7 +110,7 @@ export default function ReviewPage() {
 
         {isLoading && (
           <div className="text-center py-12">
-            <div className="animate-pulse text-gray-400">Loading mistakes...</div>
+            <div className="animate-pulse text-neutral-400">Loading mistakes...</div>
           </div>
         )}
 
@@ -121,10 +122,10 @@ export default function ReviewPage() {
 
         {!isLoading && mistakes.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-400">No mistakes yet. Keep playing!</p>
+            <p className="text-neutral-400">No mistakes yet. Keep playing!</p>
             <Link
               href="/game"
-              className="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg"
+              className="inline-block mt-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg"
             >
               Continue Playing
             </Link>
@@ -144,15 +145,24 @@ export default function ReviewPage() {
 }
 
 function MistakeCard({ mistake }: { mistake: MistakeItem }) {
+  const cfg = METRIC_CONFIG[mistake.metric];
   const selectedCard =
     mistake.selectedCardId === mistake.cardA.id ? mistake.cardA : mistake.cardB;
+  const correctId = pickCorrectId(
+    mistake.metric,
+    mistake.cardA.id,
+    mistake.cardA.value,
+    mistake.cardB.id,
+    mistake.cardB.value,
+  );
   const correctCard =
-    mistake.cardA.iih >= mistake.cardB.iih ? mistake.cardA : mistake.cardB;
+    correctId === mistake.cardA.id ? mistake.cardA : mistake.cardB;
+
+  const isABetter = correctId === mistake.cardA.id;
 
   return (
-    <div className="bg-gray-800/50 rounded-lg p-4 md:p-6">
+    <div className="bg-neutral-800/50 rounded-lg p-4 md:p-6">
       <div className="flex flex-col md:flex-row gap-4">
-        {/* Cards */}
         <div className="flex gap-4 justify-center">
           <div className="flex flex-col items-center">
             <div
@@ -161,7 +171,7 @@ function MistakeCard({ mistake }: { mistake: MistakeItem }) {
                   ? "ring-green-500"
                   : mistake.cardA.id === selectedCard.id
                     ? "ring-red-500"
-                    : "ring-gray-600"
+                    : "ring-neutral-600"
               }`}
             >
               <Image
@@ -172,22 +182,20 @@ function MistakeCard({ mistake }: { mistake: MistakeItem }) {
                 className="object-cover"
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1 max-w-[146px] truncate">
+            <p className="text-xs text-neutral-400 mt-1 max-w-[146px] truncate">
               {mistake.cardA.name}
             </p>
             <p
               className={`text-sm font-bold ${
-                mistake.cardA.iih >= mistake.cardB.iih
-                  ? "text-green-400"
-                  : "text-gray-300"
+                isABetter ? "text-green-400" : "text-neutral-300"
               }`}
             >
-              {(mistake.cardA.iih * 100).toFixed(1)}%
+              {cfg.format(mistake.cardA.value)}
             </p>
           </div>
 
           <div className="flex items-center">
-            <span className="text-gray-500 text-sm">vs</span>
+            <span className="text-neutral-500 text-sm">vs</span>
           </div>
 
           <div className="flex flex-col items-center">
@@ -197,7 +205,7 @@ function MistakeCard({ mistake }: { mistake: MistakeItem }) {
                   ? "ring-green-500"
                   : mistake.cardB.id === selectedCard.id
                     ? "ring-red-500"
-                    : "ring-gray-600"
+                    : "ring-neutral-600"
               }`}
             >
               <Image
@@ -208,34 +216,31 @@ function MistakeCard({ mistake }: { mistake: MistakeItem }) {
                 className="object-cover"
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1 max-w-[146px] truncate">
+            <p className="text-xs text-neutral-400 mt-1 max-w-[146px] truncate">
               {mistake.cardB.name}
             </p>
             <p
               className={`text-sm font-bold ${
-                mistake.cardB.iih >= mistake.cardA.iih
-                  ? "text-green-400"
-                  : "text-gray-300"
+                !isABetter ? "text-green-400" : "text-neutral-300"
               }`}
             >
-              {(mistake.cardB.iih * 100).toFixed(1)}%
+              {cfg.format(mistake.cardB.value)}
             </p>
           </div>
         </div>
 
-        {/* Info */}
         <div className="flex-1 flex flex-col justify-center text-sm">
-          <p className="text-gray-400">
+          <p className="text-neutral-400">
             You picked: <span className="text-red-400 font-medium">{selectedCard.name}</span>
           </p>
-          <p className="text-gray-400">
+          <p className="text-neutral-400">
             Correct: <span className="text-green-400 font-medium">{correctCard.name}</span>
           </p>
           <p className="text-yellow-400 mt-2">
-            Difference: {(mistake.iihDifference * 100).toFixed(1)}pp
+            Difference: {cfg.formatDiff(mistake.valueDifference)}
           </p>
-          <p className="text-gray-500 text-xs mt-2">
-            {mistake.setCode} | {new Date(mistake.createdAt).toLocaleDateString()}
+          <p className="text-neutral-500 text-xs mt-2">
+            {mistake.setCode.toUpperCase()} | {cfg.label} | {new Date(mistake.createdAt).toLocaleDateString()}
           </p>
         </div>
       </div>

@@ -83,7 +83,8 @@ model Card {
   // 17lands stats
   iihPremier     Float?
   winRatePremier Float?
-  gihWrPremier   Float? // Games In Hand Win Rate (opening_hand_win_rate)
+  gihWrPremier   Float? // Games In Hand Win Rate (ever_drawn_win_rate)
+  alsaPremier    Float? // Average Last Seen At (avg_seen)
   gamesPlayed    Int    @default(0)
 
   // Filtering flags
@@ -106,18 +107,21 @@ model Card {
 }
 
 model SetMetadata {
-  id          String    @id @default(cuid())
-  setCode     String    @unique
-  setName     String
-  releaseDate DateTime
-  isSupported Boolean   @default(true)
-  cardCount   Int       @default(0)
+  id             String  @id @default(cuid())
+  setCode        String  @unique
+  setName        String
+  releaseDate    DateTime
+  isSupported    Boolean @default(true)
+  cardCount      Int     @default(0)
+  parentSetCode  String? // For bonus sheets (e.g. STA -> STX). Null for normal sets.
 
   lastSyncedAt DateTime?
   syncStatus   String    @default("pending")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([parentSetCode])
 }
 
 // ============================================
@@ -137,10 +141,11 @@ model Guess {
   setCode String
   format  String // "PremierDraft" or "TradDraft"
 
-  selectedCardId String
-  cardAIih       Float
-  cardBIih       Float
-  iihDifference  Float
+  selectedCardId  String
+  metric          String  @default("IIH") // "IIH" | "GIH_WR" | "ALSA"
+  cardAValue      Float   @map("cardAIih")
+  cardBValue      Float   @map("cardBIih")
+  valueDifference Float   @map("iihDifference")
 
   isCorrect Boolean
 
@@ -149,7 +154,8 @@ model Guess {
   @@index([userId])
   @@index([userId, setCode])
   @@index([userId, isCorrect])
-  @@index([userId, iihDifference])
+  @@index([userId, metric])
+  @@index([userId, valueDifference], map: "Guess_userId_iihDifference_idx")
 }
 
 model UserStats {
@@ -162,9 +168,11 @@ model UserStats {
   currentStreak  Int @default(0)
   bestStreak     Int @default(0)
 
-  setBreakdown    String  @default("{}")
-  biggestMissId   String?
-  biggestMissDiff Float?
+  setBreakdown      String  @default("{}")
+  metricBreakdown   String  @default("{}") // JSON: { IIH: { total, correct }, GIH_WR: {...}, ALSA: {...} }
+  biggestMissId     String?
+  biggestMissDiff   Float?
+  biggestMissMetric String?
 
   updatedAt DateTime @updatedAt
 }
