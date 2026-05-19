@@ -10,7 +10,6 @@ interface CardDisplayProps {
   result?: "correct" | "incorrect" | null;
   disabled?: boolean;
   onClick?: () => void;
-  showIwd?: number | null;
 }
 
 export function CardDisplay({
@@ -19,7 +18,6 @@ export function CardDisplay({
   result = null,
   disabled = false,
   onClick,
-  showIwd,
 }: CardDisplayProps) {
   const colorClass = getColorClass(card.colors);
 
@@ -74,18 +72,6 @@ export function CardDisplay({
       <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-center font-medium text-gray-200 w-full truncate px-1">
         {card.name}
       </p>
-
-      {/* IWD value (shown after reveal) */}
-      {showIwd !== null && showIwd !== undefined && (
-        <div
-          className={`mt-1 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-bold ${
-            showIwd >= 0 ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"
-          }`}
-        >
-          {showIwd >= 0 ? "+" : ""}
-          {(showIwd * 100).toFixed(1)}% IWD
-        </div>
-      )}
     </div>
   );
 }

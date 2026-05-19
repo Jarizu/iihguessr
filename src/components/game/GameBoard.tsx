@@ -129,8 +129,6 @@ export function GameBoard() {
             resultB={getCardResult(currentPair.cardB.id)}
             disabled={!!result || isSubmitting}
             onSelect={handleSelect}
-            iihA={result ? result.cardAIih : null}
-            iihB={result ? result.cardBIih : null}
           />
 
           {/* Submit button (when card selected but not submitted) */}
