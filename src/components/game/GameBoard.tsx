@@ -1,18 +1,59 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
-import { DraftFormat } from "@/types";
-import { DEFAULT_SET, DEFAULT_FORMAT } from "@/lib/utils/constants";
+import { Metric, DEFAULT_METRIC, isMetric, metricInstruction } from "@/lib/metrics";
 import { useGame } from "@/hooks/useGame";
 import { CardPair } from "./CardPair";
 import { ResultOverlay } from "./ResultOverlay";
 import { ScoreTracker } from "./ScoreTracker";
 import { SetSelector } from "./SetSelector";
+import { MetricSelector } from "./MetricSelector";
+
+const METRIC_STORAGE_KEY = "iihguessr_metric";
+
+interface SetOption {
+  code: string;
+  name: string;
+}
 
 export function GameBoard() {
-  const { data: session, status } = useSession();
-  const [selectedSet, setSelectedSet] = useState(DEFAULT_SET);
+  const [sets, setSets] = useState<SetOption[]>([]);
+  const [selectedSet, setSelectedSet] = useState<string | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<Metric>(DEFAULT_METRIC);
+
+  // Restore metric from localStorage on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = localStorage.getItem(METRIC_STORAGE_KEY);
+    if (stored && isMetric(stored)) setSelectedMetric(stored);
+  }, []);
+
+  // Load the set list and default to the most recently released one
+  // (the API sorts by releaseDate desc).
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/sets")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!mounted) return;
+        const fetched: SetOption[] = (data.sets || []).map(
+          (s: { code: string; name: string }) => ({ code: s.code, name: s.name }),
+        );
+        setSets(fetched);
+        if (fetched.length > 0) setSelectedSet(fetched[0].code);
+      })
+      .catch(console.error);
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleMetricChange = useCallback((m: Metric) => {
+    setSelectedMetric(m);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(METRIC_STORAGE_KEY, m);
+    }
+  }, []);
 
   const {
     currentPair,
@@ -26,14 +67,12 @@ export function GameBoard() {
     selectCard,
     submitGuess,
     nextPair,
-  } = useGame(selectedSet);
+  } = useGame(selectedSet, selectedMetric);
 
-  // Keyboard controls
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (!currentPair || isLoading) return;
 
-      // Card selection
       if (!result) {
         if (e.key === "1") {
           selectCard(currentPair.cardA.id);
@@ -44,7 +83,6 @@ export function GameBoard() {
           submitGuess();
         }
       } else {
-        // Result shown - advance to next
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           nextPair();
@@ -54,18 +92,24 @@ export function GameBoard() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentPair, selectedCardId, result, isLoading, selectCard, submitGuess, nextPair]);
+  }, [
+    currentPair,
+    selectedCardId,
+    result,
+    isLoading,
+    selectCard,
+    submitGuess,
+    nextPair,
+  ]);
 
-  // Handle card selection
   const handleSelect = useCallback(
     (cardId: string) => {
       if (result) return;
       selectCard(cardId);
     },
-    [result, selectCard]
+    [result, selectCard],
   );
 
-  // Determine card results for display
   const getCardResult = (cardId: string) => {
     if (!result) return null;
     if (cardId === result.correctCardId) return "correct" as const;
@@ -73,17 +117,22 @@ export function GameBoard() {
     return null;
   };
 
-  // Auth is optional - anonymous users can still play
-
   return (
     <div className="flex flex-col items-center gap-6 pb-48">
-      {/* Header with set selector and score */}
-      <div className="w-full flex flex-col md:flex-row justify-between items-center gap-4">
-        <SetSelector
-          selectedSet={selectedSet}
-          onSetChange={setSelectedSet}
-          dataAsOf={dataAsOf || undefined}
-        />
+      {/* Header */}
+      <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col gap-2 items-start">
+          <SetSelector
+            sets={sets}
+            selectedSet={selectedSet}
+            onSetChange={setSelectedSet}
+            dataAsOf={dataAsOf || undefined}
+          />
+          <MetricSelector
+            selectedMetric={selectedMetric}
+            onMetricChange={handleMetricChange}
+          />
+        </div>
         <ScoreTracker
           currentStreak={stats.currentStreak}
           bestStreak={stats.bestStreak}
@@ -92,35 +141,30 @@ export function GameBoard() {
         />
       </div>
 
-      {/* Loading state */}
       {isLoading && (
         <div className="text-center py-12">
-          <div className="animate-pulse text-gray-400">Loading cards...</div>
+          <div className="animate-pulse text-neutral-400">Loading cards...</div>
         </div>
       )}
 
-      {/* Error state */}
       {error && !isLoading && (
         <div className="text-center py-12">
           <p className="text-red-400 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+            className="bg-neutral-700 hover:bg-neutral-600 text-white px-4 py-2 rounded-lg"
           >
             Retry
           </button>
         </div>
       )}
 
-      {/* Game area */}
       {currentPair && !isLoading && (
         <>
-          {/* Instruction - always shown */}
-          <p className="text-gray-400 text-center">
-            Which card has the higher IIH?
+          <p className="font-beleren text-white text-center text-lg sm:text-xl tracking-wide">
+            {metricInstruction(selectedMetric)}
           </p>
 
-          {/* Card pair */}
           <CardPair
             cardA={currentPair.cardA}
             cardB={currentPair.cardB}
@@ -131,18 +175,16 @@ export function GameBoard() {
             onSelect={handleSelect}
           />
 
-          {/* Submit button (when card selected but not submitted) */}
           {selectedCardId && !result && (
             <button
               onClick={submitGuess}
               disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
+              className="bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-600 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
             >
               {isSubmitting ? "Submitting..." : "Submit Guess"}
             </button>
           )}
 
-          {/* Result overlay */}
           {result && <ResultOverlay result={result} onNext={nextPair} />}
         </>
       )}

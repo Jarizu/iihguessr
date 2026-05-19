@@ -47,6 +47,29 @@ export function getIwd(card: SeventeenLandsCard): number | null {
 }
 
 /**
+ * Probe whether 17lands has playable data for a set. Returns true if at least
+ * one card has accumulated games. Used by the daily discovery job to decide
+ * whether a candidate set is worth ingesting.
+ */
+export async function probeSetHasData(
+  setCode: string,
+  startDate: string,
+  endDate: string,
+): Promise<boolean> {
+  try {
+    const ratings = await fetchCardRatings(
+      setCode,
+      "PremierDraft",
+      startDate,
+      endDate,
+    );
+    return ratings.some((c) => c.ever_drawn_game_count > 0);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Map 17lands color format to standard MTG color array
  * 17lands uses formats like "W", "UB", "WUBRG", ""
  */

@@ -2,15 +2,93 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Beleren — MTG's signature serif. Self-hosted from /public/fonts.
+   Source: github.com/Saeris/typeface-beleren-bold */
+@font-face {
+  font-family: "Beleren";
+  src: url("/fonts/Beleren2016-Bold.woff") format("woff");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+@font-face {
+  font-family: "Beleren SmallCaps";
+  src: url("/fonts/Beleren2016SmallCaps-Bold.woff") format("woff");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+@font-face {
+  font-family: "Beleren SmallCaps";
+  src: url("/fonts/Beleren2016SmallCaps-BoldItalic.woff") format("woff");
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+/* Splentinex — open-source Plantin clone (SIL OFL). Body font.
+   Source: github.com/dbenjaminmiller/splentinex */
+@font-face {
+  font-family: "Splentinex";
+  src: url("/fonts/Splentinex-Regular.otf") format("opentype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+@font-face {
+  font-family: "Splentinex";
+  src: url("/fonts/Splentinex-Italic.otf") format("opentype");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+@font-face {
+  font-family: "Splentinex";
+  src: url("/fonts/Splentinex-Bold.otf") format("opentype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+@font-face {
+  font-family: "Splentinex";
+  src: url("/fonts/Splentinex-BoldItalic.otf") format("opentype");
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+}
+
+/* Beleren as a utility class for headings / card-name accents. */
+.font-beleren {
+  font-family: "Beleren", "Cinzel", Georgia, serif;
+  letter-spacing: 0.01em;
+}
+.font-beleren-smallcaps {
+  font-family: "Beleren SmallCaps", "Beleren", "Cinzel", Georgia, serif;
+  letter-spacing: 0.02em;
+}
+
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #000000;
+  --foreground: #ffffff;
+  --accent: #5b0dd1; /* purple-600 */
+}
+
+::selection {
+  background: rgba(91, 13, 209, 0.45);
+  color: #ffffff;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: "Splentinex", "Spectral", Georgia, "Times New Roman", serif;
 }
 
 /* Card colors for MTG */
@@ -44,14 +122,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: #0a0a0a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4a4a4a;
+  background: #240554; /* purple-900 */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #5a5a5a;
+  background: #5b0dd1; /* purple-600 */
 }

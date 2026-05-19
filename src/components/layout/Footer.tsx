@@ -4,14 +4,14 @@ import { SEVENTEEN_LANDS_HOME } from "@/lib/utils/17lands-urls";
 
 export function Footer() {
   return (
-    <footer className="py-4 text-center text-gray-500 text-sm border-t border-gray-800 mt-8">
+    <footer className="py-4 text-center text-neutral-500 text-sm border-t border-neutral-800 mt-8">
       <p>
         Data from{" "}
         <a
           href={SEVENTEEN_LANDS_HOME}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="text-purple-400 hover:text-purple-300 underline"
         >
           17lands.com
         </a>
@@ -21,7 +21,7 @@ export function Footer() {
           href="https://scryfall.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="text-purple-400 hover:text-purple-300 underline"
         >
           Scryfall
         </a>

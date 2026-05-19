@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { MistakeItem, CardWithIwd, DraftFormat } from "@/types";
+import { MistakeItem, CardWithValue } from "@/types";
 import { parseColors } from "@/lib/utils/colors";
+import { parseMetric } from "@/lib/metrics";
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -11,14 +12,18 @@ export async function GET(request: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json(
       { error: "Authentication required" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
   const searchParams = request.nextUrl.searchParams;
-  const limit = Math.min(Math.max(parseInt(searchParams.get("limit") || "20"), 1), 100);
+  const limit = Math.min(
+    Math.max(parseInt(searchParams.get("limit") || "20"), 1),
+    100,
+  );
   const sort = searchParams.get("sort") || "difference"; // "difference" or "recent"
   const setFilter = searchParams.get("set");
+  const metricFilter = searchParams.get("metric");
 
   try {
     const mistakes = await prisma.guess.findMany({
@@ -26,22 +31,18 @@ export async function GET(request: NextRequest) {
         userId: session.user.id,
         isCorrect: false,
         ...(setFilter ? { setCode: setFilter } : {}),
+        ...(metricFilter ? { metric: metricFilter } : {}),
       },
-      include: {
-        cardA: true,
-        cardB: true,
-      },
+      include: { cardA: true, cardB: true },
       orderBy:
-        sort === "recent"
-          ? { createdAt: "desc" }
-          : { iihDifference: "desc" },
+        sort === "recent" ? { createdAt: "desc" } : { valueDifference: "desc" },
       take: limit,
     });
 
     const response: MistakeItem[] = mistakes.map((mistake) => {
-      const format = mistake.format as DraftFormat;
+      const metric = parseMetric(mistake.metric);
 
-      const cardAWithIwd: CardWithIwd = {
+      const cardA: CardWithValue = {
         id: mistake.cardA.id,
         name: mistake.cardA.name,
         imageUri: mistake.cardA.imageUri,
@@ -51,10 +52,11 @@ export async function GET(request: NextRequest) {
         rarity: mistake.cardA.rarity,
         typeLine: mistake.cardA.typeLine,
         manaCost: mistake.cardA.manaCost,
-        iih: mistake.cardAIih,
+        value: mistake.cardAValue,
+        metric,
       };
 
-      const cardBWithIwd: CardWithIwd = {
+      const cardB: CardWithValue = {
         id: mistake.cardB.id,
         name: mistake.cardB.name,
         imageUri: mistake.cardB.imageUri,
@@ -64,15 +66,17 @@ export async function GET(request: NextRequest) {
         rarity: mistake.cardB.rarity,
         typeLine: mistake.cardB.typeLine,
         manaCost: mistake.cardB.manaCost,
-        iih: mistake.cardBIih,
+        value: mistake.cardBValue,
+        metric,
       };
 
       return {
         id: mistake.id,
-        cardA: cardAWithIwd,
-        cardB: cardBWithIwd,
+        cardA,
+        cardB,
         selectedCardId: mistake.selectedCardId,
-        iihDifference: mistake.iihDifference,
+        valueDifference: mistake.valueDifference,
+        metric,
         createdAt: mistake.createdAt.toISOString(),
         setCode: mistake.setCode,
       };
@@ -83,7 +87,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching mistakes:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

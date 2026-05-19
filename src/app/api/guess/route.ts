@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { GuessRequest, GuessResponse, DraftFormat } from "@/types";
+import { GuessRequest, GuessResponse } from "@/types";
+import {
+  METRIC_CONFIG,
+  parseMetric,
+  correctCardId as pickCorrectId,
+} from "@/lib/metrics";
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -12,32 +17,27 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Invalid JSON body" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   const { cardAId, cardBId, selectedCardId, setCode } = body;
+  const metric = parseMetric(body.metric);
 
-  // Validate required fields
   if (!cardAId || !cardBId || !selectedCardId || !setCode) {
     return NextResponse.json(
       { error: "Missing required fields" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  // Validate selectedCardId is one of the two cards
   if (selectedCardId !== cardAId && selectedCardId !== cardBId) {
     return NextResponse.json(
       { error: "Selected card must be one of the pair" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   try {
-    // Fetch both cards
     const [cardA, cardB] = await Promise.all([
       prisma.card.findUnique({ where: { id: cardAId } }),
       prisma.card.findUnique({ where: { id: cardBId } }),
@@ -46,47 +46,42 @@ export async function POST(request: NextRequest) {
     if (!cardA || !cardB) {
       return NextResponse.json(
         { error: "One or both cards not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
-    // Get IWD and GIH WR values
-    const cardAIwd = cardA.iihPremier;
-    const cardBIwd = cardB.iihPremier;
-    const cardAGihWr = cardA.gihWrPremier;
-    const cardBGihWr = cardB.gihWrPremier;
+    const column = METRIC_CONFIG[metric].column;
+    const valueA = cardA[column] as number | null;
+    const valueB = cardB[column] as number | null;
 
-    if (cardAIwd === null || cardBIwd === null) {
+    if (valueA === null || valueB === null) {
       return NextResponse.json(
-        { error: "Cards missing IWD data" },
-        { status: 400 }
+        { error: `Cards missing ${metric} data` },
+        { status: 400 },
       );
     }
 
-    // Determine correct answer
-    const correctCardId = cardAIwd >= cardBIwd ? cardAId : cardBId;
+    const correctCardId = pickCorrectId(metric, cardAId, valueA, cardBId, valueB);
     const isCorrect = selectedCardId === correctCardId;
-    const iihDifference = Math.abs(cardAIwd - cardBIwd);
+    const valueDifference = Math.abs(valueA - valueB);
 
-    // If user is authenticated, persist the guess and stats
     if (userId) {
-      // Record the guess
       await prisma.guess.create({
         data: {
           userId,
           cardAId,
           cardBId,
           selectedCardId,
-          cardAIih: cardAIwd,
-          cardBIih: cardBIwd,
-          iihDifference,
+          metric,
+          cardAValue: valueA,
+          cardBValue: valueB,
+          valueDifference,
           isCorrect,
           setCode,
           format: "PremierDraft",
         },
       });
 
-      // Update user stats
       const stats = await prisma.userStats.upsert({
         where: { userId },
         create: {
@@ -98,6 +93,9 @@ export async function POST(request: NextRequest) {
           setBreakdown: JSON.stringify({
             [setCode]: { total: 1, correct: isCorrect ? 1 : 0 },
           }),
+          metricBreakdown: JSON.stringify({
+            [metric]: { total: 1, correct: isCorrect ? 1 : 0 },
+          }),
         },
         update: {
           totalGuesses: { increment: 1 },
@@ -106,7 +104,6 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Update best streak if needed
       const newStreak = isCorrect ? stats.currentStreak + 1 : 0;
       if (newStreak > stats.bestStreak) {
         await prisma.userStats.update({
@@ -115,102 +112,148 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Update set breakdown
-      const breakdown = JSON.parse(stats.setBreakdown || "{}");
-      if (!breakdown[setCode]) {
-        breakdown[setCode] = { total: 0, correct: 0 };
-      }
-      breakdown[setCode].total += 1;
-      if (isCorrect) {
-        breakdown[setCode].correct += 1;
-      }
+      // Per-set breakdown
+      const setBreakdown = JSON.parse(stats.setBreakdown || "{}");
+      if (!setBreakdown[setCode]) setBreakdown[setCode] = { total: 0, correct: 0 };
+      setBreakdown[setCode].total += 1;
+      if (isCorrect) setBreakdown[setCode].correct += 1;
+
+      // Per-metric breakdown
+      const metricBreakdown = JSON.parse(stats.metricBreakdown || "{}");
+      if (!metricBreakdown[metric]) metricBreakdown[metric] = { total: 0, correct: 0 };
+      metricBreakdown[metric].total += 1;
+      if (isCorrect) metricBreakdown[metric].correct += 1;
 
       await prisma.userStats.update({
         where: { userId },
-        data: { setBreakdown: JSON.stringify(breakdown) },
+        data: {
+          setBreakdown: JSON.stringify(setBreakdown),
+          metricBreakdown: JSON.stringify(metricBreakdown),
+        },
       });
 
-      // Update biggest miss if this was a big miss
+      // Biggest miss — tracked across all metrics, but tagged with the metric
+      // it was made under so the stats page can label it correctly.
       if (!isCorrect) {
-        const shouldUpdateBiggestMiss =
-          !stats.biggestMissDiff || iihDifference > stats.biggestMissDiff;
+        // Biggest miss is now metric-specific (different scales — pp vs picks).
+        // We compare within the same metric to decide if this beats the current
+        // record for that metric. Cross-metric "biggest miss" wouldn't be
+        // meaningful.
+        const shouldUpdate =
+          !stats.biggestMissDiff ||
+          stats.biggestMissMetric !== metric ||
+          valueDifference > stats.biggestMissDiff;
 
-        if (shouldUpdateBiggestMiss) {
+        if (shouldUpdate) {
           const newGuess = await prisma.guess.findFirst({
-            where: {
-              userId,
-              isCorrect: false,
-            },
-            orderBy: { iihDifference: "desc" },
+            where: { userId, isCorrect: false, metric },
+            orderBy: { valueDifference: "desc" },
           });
-
           if (newGuess) {
             await prisma.userStats.update({
               where: { userId },
               data: {
                 biggestMissId: newGuess.id,
-                biggestMissDiff: newGuess.iihDifference,
+                biggestMissDiff: newGuess.valueDifference,
+                biggestMissMetric: metric,
               },
             });
           }
         }
       }
 
-      const finalStats = await prisma.userStats.findUnique({
-        where: { userId },
-      });
+      const finalStats = await prisma.userStats.findUnique({ where: { userId } });
 
-      const response: GuessResponse = {
+      return NextResponse.json(buildResponse({
         isCorrect,
-        cardAIih: cardAIwd,
-        cardBIih: cardBIwd,
-        cardAGihWr: cardAGihWr ?? 0,
-        cardBGihWr: cardBGihWr ?? 0,
-        cardAName: cardA.name,
-        cardBName: cardB.name,
-        cardAScryfallId: cardA.scryfallId,
-        cardBScryfallId: cardB.scryfallId,
-        setCode: cardA.setCode,
+        metric,
+        valueA,
+        valueB,
+        valueDifference,
+        cardA,
+        cardB,
         correctCardId,
-        iihDifference,
-        newStreak: finalStats?.currentStreak || 0,
-        newTotal: finalStats?.totalGuesses || 1,
+        newStreak: finalStats?.currentStreak ?? 0,
+        newTotal: finalStats?.totalGuesses ?? 1,
         newAccuracy: finalStats
           ? (finalStats.correctGuesses / finalStats.totalGuesses) * 100
           : isCorrect
             ? 100
             : 0,
-      };
-
-      return NextResponse.json(response);
+      }));
     }
 
-    // Anonymous user - just return the result without persisting
-    // Stats will be tracked client-side
-    const response: GuessResponse = {
+    // Anonymous: stats tracked client-side
+    return NextResponse.json(buildResponse({
       isCorrect,
-      cardAIih: cardAIwd,
-      cardBIih: cardBIwd,
-      cardAGihWr: cardAGihWr ?? 0,
-      cardBGihWr: cardBGihWr ?? 0,
-      cardAName: cardA.name,
-      cardBName: cardB.name,
-      cardAScryfallId: cardA.scryfallId,
-      cardBScryfallId: cardB.scryfallId,
-      setCode: cardA.setCode,
+      metric,
+      valueA,
+      valueB,
+      valueDifference,
+      cardA,
+      cardB,
       correctCardId,
-      iihDifference,
-      newStreak: 0, // Client will track this
+      newStreak: 0,
       newTotal: 0,
       newAccuracy: 0,
-    };
-
-    return NextResponse.json(response);
+    }));
   } catch (error) {
     console.error("Error processing guess:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
+}
+
+interface BuildArgs {
+  isCorrect: boolean;
+  metric: ReturnType<typeof parseMetric>;
+  valueA: number;
+  valueB: number;
+  valueDifference: number;
+  cardA: {
+    name: string;
+    scryfallId: string;
+    setCode: string;
+    iihPremier: number | null;
+    gihWrPremier: number | null;
+    alsaPremier: number | null;
+  };
+  cardB: {
+    name: string;
+    scryfallId: string;
+    iihPremier: number | null;
+    gihWrPremier: number | null;
+    alsaPremier: number | null;
+  };
+  correctCardId: string;
+  newStreak: number;
+  newTotal: number;
+  newAccuracy: number;
+}
+
+function buildResponse(args: BuildArgs): GuessResponse {
+  return {
+    isCorrect: args.isCorrect,
+    metric: args.metric,
+    cardAValue: args.valueA,
+    cardBValue: args.valueB,
+    valueDifference: args.valueDifference,
+    cardAIih: args.cardA.iihPremier,
+    cardBIih: args.cardB.iihPremier,
+    cardAGihWr: args.cardA.gihWrPremier,
+    cardBGihWr: args.cardB.gihWrPremier,
+    cardAAlsa: args.cardA.alsaPremier,
+    cardBAlsa: args.cardB.alsaPremier,
+    cardAName: args.cardA.name,
+    cardBName: args.cardB.name,
+    cardAScryfallId: args.cardA.scryfallId,
+    cardBScryfallId: args.cardB.scryfallId,
+    setCode: args.cardA.setCode,
+    correctCardId: args.correctCardId,
+    newStreak: args.newStreak,
+    newTotal: args.newTotal,
+    newAccuracy: args.newAccuracy,
+  };
 }

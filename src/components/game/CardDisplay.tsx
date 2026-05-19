@@ -19,13 +19,14 @@ export function CardDisplay({
   disabled = false,
   onClick,
 }: CardDisplayProps) {
-  const colorClass = getColorClass(card.colors);
+  // Color reserved for future use (kept to preserve existing styles via util import).
+  getColorClass(card.colors);
 
   const getBorderClass = () => {
     if (result === "correct") return "ring-4 ring-green-500";
     if (result === "incorrect") return "ring-4 ring-red-500";
-    if (isSelected) return "ring-4 ring-blue-500";
-    return "ring-2 ring-gray-600 hover:ring-blue-400";
+    if (isSelected) return "ring-4 ring-purple-500";
+    return "ring-2 ring-neutral-600 hover:ring-purple-400";
   };
 
   return (
@@ -35,7 +36,6 @@ export function CardDisplay({
       }`}
       onClick={disabled ? undefined : onClick}
     >
-      {/* Card image */}
       <div
         className={`relative rounded-lg overflow-hidden ${getBorderClass()} transition-all duration-200 w-full max-w-[244px]`}
       >
@@ -47,14 +47,10 @@ export function CardDisplay({
           className="object-cover w-full h-auto"
           priority
         />
-
-        {/* Result overlay */}
         {result && (
           <div
             className={`absolute inset-0 flex items-center justify-center ${
-              result === "correct"
-                ? "bg-green-500/20"
-                : "bg-red-500/20"
+              result === "correct" ? "bg-green-500/20" : "bg-red-500/20"
             }`}
           >
             <span
@@ -68,8 +64,7 @@ export function CardDisplay({
         )}
       </div>
 
-      {/* Card name */}
-      <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-center font-medium text-gray-200 w-full truncate px-1">
+      <p className="font-beleren mt-1 sm:mt-2 text-xs sm:text-sm text-center text-white w-full truncate px-1">
         {card.name}
       </p>
     </div>
