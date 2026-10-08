@@ -11,8 +11,9 @@ export async function fetchCardRatings(
   startDate: string,
   endDate: string
 ): Promise<SeventeenLandsCard[]> {
-  // 17lands API uses event_type instead of format, and requires date range
-  const url = `${SEVENTEEN_LANDS_BASE_URL}/card_ratings/data?expansion=${setCode}&event_type=${format}&start_date=${startDate}&end_date=${endDate}`;
+  // 17lands API uses event_type instead of format, and requires date range.
+  // `expansion` is case-sensitive: lowercase codes return an empty array.
+  const url = `${SEVENTEEN_LANDS_BASE_URL}/card_ratings/data?expansion=${setCode.toUpperCase()}&event_type=${format}&start_date=${startDate}&end_date=${endDate}`;
 
   console.log(`Fetching from: ${url}`);
 
