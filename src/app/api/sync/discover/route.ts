@@ -32,13 +32,6 @@ async function handle(request: NextRequest) {
   const unauthorized = requireCronAuth(request);
   if (unauthorized) return unauthorized;
 
-  // If 17lands can't return data for a set we know has it, every probe below
-  // would report "no data yet" and new sets would be skipped silently.
-  const canaryError = await checkSeventeenLandsCanary();
-  if (canaryError) {
-    return NextResponse.json({ error: canaryError }, { status: 503 });
-  }
-
   const results: DiscoveryResult[] = [];
 
   let allSets: ScryfallSet[];
@@ -52,6 +45,14 @@ async function handle(request: NextRequest) {
   }
 
   const candidates = filterCandidateSets(allSets, MIN_RELEASE_DATE);
+
+  // If 17lands can't return data for the current set, every probe below
+  // would report "no data yet" and new sets would be skipped silently.
+  const canaryError = await checkSeventeenLandsCanary(candidates);
+  if (canaryError) {
+    return NextResponse.json({ error: canaryError }, { status: 503 });
+  }
+
   const existingMeta = await prisma.setMetadata.findMany({
     select: { setCode: true },
   });
@@ -118,7 +119,7 @@ async function handle(request: NextRequest) {
         cardsAdded: syncResult.cardsAdded,
         cardsUpdated: syncResult.cardsUpdated,
         message:
-          syncResult.status === "error" ? syncResult.error : undefined,
+          syncResult.status === "success" ? undefined : syncResult.error,
       });
     } catch (error) {
       results.push({

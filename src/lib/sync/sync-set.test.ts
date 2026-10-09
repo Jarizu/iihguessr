@@ -6,7 +6,7 @@ const { mockFetchRatings, mockFetchSetCards, prismaMock } = vi.hoisted(() => ({
   prismaMock: {
     setMetadata: { findUnique: vi.fn(), update: vi.fn() },
     dataSyncLog: { create: vi.fn(), update: vi.fn() },
-    card: { findUnique: vi.fn(), update: vi.fn(), create: vi.fn() },
+    card: { findUnique: vi.fn(), update: vi.fn(), create: vi.fn(), count: vi.fn() },
   },
 }));
 
@@ -37,15 +37,32 @@ describe("syncSet", () => {
     prismaMock.dataSyncLog.create.mockResolvedValue({ id: "log1" });
   });
 
-  it("refuses to overwrite card stats when 17lands returns no games", async () => {
-    mockFetchRatings.mockResolvedValue([]);
+  it("leaves stored stats alone when 17lands returns only a few games", async () => {
+    // What 17lands now returns for a non-current set like MSH.
+    mockFetchRatings.mockResolvedValue([
+      { name: "a", ever_drawn_game_count: 6 },
+      { name: "b", ever_drawn_game_count: 3 },
+    ]);
+    prismaMock.card.count.mockResolvedValue(240);
 
     const result = await syncSet("msh");
 
-    expect(result.status).toBe("error");
-    expect(result.error).toMatch(/refusing to overwrite/);
+    expect(result.status).toBe("skipped");
+    expect(result.error).toMatch(/left existing data unchanged/);
     expect(mockFetchSetCards).not.toHaveBeenCalled();
     expect(prismaMock.card.update).not.toHaveBeenCalled();
     expect(prismaMock.card.create).not.toHaveBeenCalled();
+  });
+
+  it("skips when the response is far thinner than what's stored", async () => {
+    mockFetchRatings.mockResolvedValue(
+      Array.from({ length: 30 }, (_, i) => ({ name: `c${i}`, ever_drawn_game_count: 100 })),
+    );
+    prismaMock.card.count.mockResolvedValue(240);
+
+    const result = await syncSet("msh");
+
+    expect(result.status).toBe("skipped");
+    expect(prismaMock.card.update).not.toHaveBeenCalled();
   });
 });

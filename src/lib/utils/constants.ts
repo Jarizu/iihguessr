@@ -17,5 +17,12 @@ export const PAIRING_CONFIG = {
 
 export const PRELOAD_PAIR_COUNT = 3;
 
+/**
+ * A set needs at least this many cards with 50+ games (enough for an IIH
+ * value) before it's worth adding or showing. Some sets, like The Hobbit,
+ * get a 17lands page but are barely drafted on Arena.
+ */
+export const MIN_PLAYABLE_CARDS = 20;
+
 export const SEVENTEEN_LANDS_BASE_URL = "https://www.17lands.com";
 export const SCRYFALL_BASE_URL = "https://api.scryfall.com";

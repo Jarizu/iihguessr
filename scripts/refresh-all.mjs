@@ -20,6 +20,7 @@ const { sets } = await listRes.json();
 console.log(`Refreshing ${sets.length} sets from ${base}`);
 
 let failures = 0;
+let skipped = 0;
 for (const { setCode } of sets) {
   const res = await fetch(`${base}/api/sync?set=${setCode}`, {
     method: "POST",
@@ -27,7 +28,11 @@ for (const { setCode } of sets) {
   });
   const body = await res.json().catch(() => ({}));
   const result = body.results?.[0];
-  if (!res.ok || !result || result.status !== "success") {
+  if (result?.status === "skipped") {
+    // 17lands only serves the current set publicly; older sets keep their data.
+    skipped++;
+    console.log(`- ${setCode}: skipped (${result.error})`);
+  } else if (!res.ok || !result || result.status !== "success") {
     failures++;
     console.log(`✗ ${setCode}: ${result?.error ?? body.error ?? res.status}`);
   } else {
@@ -37,5 +42,7 @@ for (const { setCode } of sets) {
   }
 }
 
-console.log(`Done. ${sets.length - failures} ok, ${failures} failed.`);
+console.log(
+  `Done. ${sets.length - failures - skipped} updated, ${skipped} skipped, ${failures} failed.`,
+);
 process.exit(failures ? 1 : 0);

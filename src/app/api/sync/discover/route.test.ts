@@ -65,12 +65,13 @@ describe("/api/sync/discover", () => {
   });
 
   it("fails loudly instead of skipping sets when the 17lands canary is empty", async () => {
-    mockCanary.mockResolvedValue("17lands returned no data for known-good set msh");
+    mockCanary.mockResolvedValue("17lands returned no data for the current set fra");
     mockFetchAllSets.mockResolvedValue([]);
 
     const res = await GET(makeReq({ authorization: "Bearer test-secret" }));
     expect(res.status).toBe(503);
-    expect(mockFetchAllSets).not.toHaveBeenCalled();
+    expect(mockFindMany).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   it("returns 401 without the cron secret", async () => {

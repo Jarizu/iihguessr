@@ -9,11 +9,17 @@ import {
   isBasicLand,
   isSpecialGuest,
 } from "@/lib/api/scryfall";
+import { MIN_PLAYABLE_CARDS } from "@/lib/utils/constants";
 import type { SeventeenLandsCard, ScryfallCard, DraftFormat } from "@/types";
 
 export interface SyncResult {
   setCode: string;
-  status: "success" | "error";
+  /**
+   * "skipped": 17lands didn't return enough data to be worth saving, so
+   * nothing was written. Normal for older sets, whose data 17lands no
+   * longer serves publicly.
+   */
+  status: "success" | "skipped" | "error";
   cardsAdded: number;
   cardsUpdated: number;
   error?: string;
@@ -98,13 +104,28 @@ export async function syncSet(
       );
     }
 
-    // Never overwrite stored stats with an empty response. If 17lands
-    // changes its API (as it did when `expansion` became case-sensitive),
-    // every card would otherwise be rewritten with null IIH.
-    if (!ratingsData.some((c) => c.ever_drawn_game_count > 0)) {
-      throw new Error(
-        `17lands returned no game data for ${setCode}; refusing to overwrite existing card stats`,
-      );
+    // Never overwrite stored stats with a thinner response. 17lands now
+    // serves only the current set publicly (older sets come back with a
+    // handful of games), and API changes can return nothing at all; either
+    // way every card would be rewritten with null IIH.
+    const playableInResponse = ratingsData.filter(
+      (c) => c.ever_drawn_game_count >= 50,
+    ).length;
+    const playableStored = await prisma.card.count({
+      where: { setCode, iihPremier: { not: null } },
+    });
+    const required = Math.max(MIN_PLAYABLE_CARDS, Math.ceil(playableStored / 2));
+    if (playableInResponse < required) {
+      const reason = `17lands returned ${playableInResponse} cards with enough games (need ${required}; ${playableStored} stored); left existing data unchanged`;
+      await prisma.setMetadata.update({
+        where: { setCode },
+        data: { syncStatus: setMeta.syncStatus },
+      });
+      await prisma.dataSyncLog.update({
+        where: { id: logEntry.id },
+        data: { status: "skipped", errorMessage: reason, completedAt: new Date() },
+      });
+      return { setCode, status: "skipped", cardsAdded: 0, cardsUpdated: 0, error: reason };
     }
 
     const scryfallCards = await fetchSetCards(setCode);
