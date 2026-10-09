@@ -38,6 +38,11 @@ vi.mock("@/lib/sync/sync-set", () => ({
   syncSet: mockSyncSet,
 }));
 
+const { mockCanary } = vi.hoisted(() => ({ mockCanary: vi.fn() }));
+vi.mock("@/lib/sync/canary", () => ({
+  checkSeventeenLandsCanary: mockCanary,
+}));
+
 // --- Now import the SUT ---
 import { GET } from "./route";
 
@@ -56,6 +61,16 @@ describe("/api/sync/discover", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.CRON_SECRET = "test-secret";
+    mockCanary.mockResolvedValue(null);
+  });
+
+  it("fails loudly instead of skipping sets when the 17lands canary is empty", async () => {
+    mockCanary.mockResolvedValue("17lands returned no data for known-good set msh");
+    mockFetchAllSets.mockResolvedValue([]);
+
+    const res = await GET(makeReq({ authorization: "Bearer test-secret" }));
+    expect(res.status).toBe(503);
+    expect(mockFetchAllSets).not.toHaveBeenCalled();
   });
 
   it("returns 401 without the cron secret", async () => {

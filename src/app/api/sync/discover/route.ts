@@ -4,8 +4,11 @@ import { requireCronAuth } from "@/lib/auth/cron-auth";
 import { fetchAllSets, filterCandidateSets } from "@/lib/api/scryfall-sets";
 import { probeSetHasData } from "@/lib/api/17lands";
 import { syncSet } from "@/lib/sync/sync-set";
+import { checkSeventeenLandsCanary } from "@/lib/sync/canary";
 import { getOverrideParent } from "@/lib/utils/bonus-sheets";
 import type { ScryfallSet } from "@/types";
+
+export const maxDuration = 300;
 
 const MIN_RELEASE_DATE = new Date("2018-01-01");
 
@@ -28,6 +31,13 @@ export async function POST(request: NextRequest) {
 async function handle(request: NextRequest) {
   const unauthorized = requireCronAuth(request);
   if (unauthorized) return unauthorized;
+
+  // If 17lands can't return data for a set we know has it, every probe below
+  // would report "no data yet" and new sets would be skipped silently.
+  const canaryError = await checkSeventeenLandsCanary();
+  if (canaryError) {
+    return NextResponse.json({ error: canaryError }, { status: 503 });
+  }
 
   const results: DiscoveryResult[] = [];
 

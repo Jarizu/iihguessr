@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireCronAuth } from "@/lib/auth/cron-auth";
-import { syncSet, SyncResult } from "@/lib/sync/sync-set";
+import { syncSetsWithinBudget } from "@/lib/sync/sync-many";
 import { DraftFormat } from "@/types";
 
+export const maxDuration = 300;
+
+/**
+ * Re-sync one set (`?set=xyz`) or every set. Syncing every set takes longer
+ * than one function call allows, so this does as many as fit (least recently
+ * synced first) and returns the rest in `remaining`.
+ * `scripts/refresh-all.mjs` calls it one set at a time instead.
+ */
 export async function POST(request: NextRequest) {
   const unauthorized = requireCronAuth(request);
   if (unauthorized) return unauthorized;
@@ -14,7 +22,9 @@ export async function POST(request: NextRequest) {
 
   const targets = setCode
     ? await prisma.setMetadata.findMany({ where: { setCode } })
-    : await prisma.setMetadata.findMany();
+    : await prisma.setMetadata.findMany({
+        orderBy: { lastSyncedAt: { sort: "asc", nulls: "first" } },
+      });
 
   if (setCode && targets.length === 0) {
     return NextResponse.json(
@@ -25,12 +35,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const results: SyncResult[] = [];
-  for (const meta of targets) {
-    results.push(await syncSet(meta.setCode, { format }));
-  }
+  const { results, remaining } = await syncSetsWithinBudget(
+    targets.map((t) => t.setCode),
+    { format },
+  );
 
-  return NextResponse.json({ results });
+  return NextResponse.json({ results, remaining });
 }
 
 export async function GET() {

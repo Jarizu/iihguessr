@@ -98,6 +98,15 @@ export async function syncSet(
       );
     }
 
+    // Never overwrite stored stats with an empty response. If 17lands
+    // changes its API (as it did when `expansion` became case-sensitive),
+    // every card would otherwise be rewritten with null IIH.
+    if (!ratingsData.some((c) => c.ever_drawn_game_count > 0)) {
+      throw new Error(
+        `17lands returned no game data for ${setCode}; refusing to overwrite existing card stats`,
+      );
+    }
+
     const scryfallCards = await fetchSetCards(setCode);
 
     const { cardsAdded, cardsUpdated } = await upsertCardsFromSources({

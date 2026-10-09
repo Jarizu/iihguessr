@@ -100,16 +100,22 @@ After the first deploy:
 # 1. Seed the SetMetadata table from the static list
 npx tsx prisma/seed.ts
 
-# 2. Sync card data for every seeded set (requires CRON_SECRET in env)
-curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://iihguessr.com/api/sync
+# 2. Sync card data for every seeded set, one set per request
+CRON_SECRET=... node scripts/refresh-all.mjs
 
 # 3. Backfill any bonus sheets (STA-in-STX, etc.)
 npx tsx scripts/backfill-bonus-sheets.ts
 ```
 
-After that, the daily cron at `/api/sync/discover` (defined in `vercel.json`)
-picks up new sets and bonus sheets automatically — no manual work to add
-future MTG releases.
+After that, two daily crons (defined in `vercel.json`) keep data current:
+
+- `/api/sync/discover` (06:00 UTC) adds new sets and bonus sheets.
+- `/api/sync/refresh` (06:30 UTC) re-syncs sets released in the last 90 days.
+
+Both first check that 17lands still returns data for a known-good set and
+return 503 if it doesn't, so an upstream API change shows up as a failed cron
+in Vercel instead of silently skipping sets. A sync never overwrites stored
+stats with an empty 17lands response.
 
 ## Step 7: Configure Domain
 
@@ -160,7 +166,7 @@ For a fresh start (recommended):
 
 1. **Database**: Monitor usage in Neon dashboard
 2. **Vercel**: Check deployment logs and analytics
-3. **17lands Data**: The daily cron at `/api/sync/discover` (06:00 UTC) finds new sets and ingests their card data. Existing sets can be refreshed by calling `POST /api/sync` with the `CRON_SECRET` Bearer token.
+3. **17lands Data**: Daily crons add new sets (`/api/sync/discover`, 06:00 UTC) and refresh recent ones (`/api/sync/refresh`, 06:30 UTC); a failed run in Vercel's Cron Jobs tab usually means 17lands changed something. To refresh every set, run `CRON_SECRET=... node scripts/refresh-all.mjs`, or one set with `POST /api/sync?set=xyz`.
 
 ## Troubleshooting
 
