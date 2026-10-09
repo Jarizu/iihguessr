@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireCronAuth } from "@/lib/auth/cron-auth";
-import { checkSeventeenLandsCanary } from "@/lib/sync/canary";
 import { syncSetsWithinBudget } from "@/lib/sync/sync-many";
 
 export const maxDuration = 300;
@@ -24,11 +23,6 @@ async function handle(request: NextRequest) {
   const unauthorized = requireCronAuth(request);
   if (unauthorized) return unauthorized;
 
-  const canaryError = await checkSeventeenLandsCanary();
-  if (canaryError) {
-    return NextResponse.json({ error: canaryError }, { status: 503 });
-  }
-
   const since = new Date(
     Date.now() - REFRESH_WINDOW_DAYS * 24 * 60 * 60 * 1000,
   );
@@ -50,6 +44,8 @@ async function handle(request: NextRequest) {
     ...bonusSheets.map((s) => s.setCode),
   ]);
 
+  // "skipped" (17lands had too little data to save) is expected for sets
+  // that are no longer current; only real errors should fail the cron.
   const failed = results.some((r) => r.status === "error");
   return NextResponse.json(
     { results, remaining },

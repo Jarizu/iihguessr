@@ -1,5 +1,8 @@
 import { SeventeenLandsCard, DraftFormat } from "@/types";
-import { SEVENTEEN_LANDS_BASE_URL } from "@/lib/utils/constants";
+import {
+  MIN_PLAYABLE_CARDS,
+  SEVENTEEN_LANDS_BASE_URL,
+} from "@/lib/utils/constants";
 
 /**
  * Fetch card ratings from 17lands for a specific set and format
@@ -48,8 +51,8 @@ export function getIwd(card: SeventeenLandsCard): number | null {
 }
 
 /**
- * Probe whether 17lands has playable data for a set. Returns true if at least
- * one card has accumulated games. Used by the daily discovery job to decide
+ * Probe whether 17lands has playable data for a set: at least
+ * MIN_PLAYABLE_CARDS cards with enough games for an IIH value. Used by the daily discovery job to decide
  * whether a candidate set is worth ingesting.
  */
 export async function probeSetHasData(
@@ -64,7 +67,8 @@ export async function probeSetHasData(
       startDate,
       endDate,
     );
-    return ratings.some((c) => c.ever_drawn_game_count > 0);
+    const playable = ratings.filter((c) => c.ever_drawn_game_count >= 50);
+    return playable.length >= MIN_PLAYABLE_CARDS;
   } catch {
     return false;
   }

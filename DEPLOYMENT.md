@@ -112,10 +112,16 @@ After that, two daily crons (defined in `vercel.json`) keep data current:
 - `/api/sync/discover` (02:00 UTC) adds new sets and bonus sheets.
 - `/api/sync/refresh` (03:00 UTC) re-syncs sets released in the last 90 days.
 
-Both first check that 17lands still returns data for a known-good set and
-return 503 if it doesn't, so an upstream API change shows up as a failed cron
-in Vercel instead of silently skipping sets. A sync never overwrites stored
-stats with an empty 17lands response.
+Discover first checks that 17lands returns data for the current set and
+returns 503 if it doesn't, so an upstream API change shows up as a failed
+cron in Vercel instead of silently skipping sets.
+
+17lands' public API only serves data for the current set; older sets come
+back with a handful of games. A sync never overwrites stored stats with a
+response that has fewer than 20 playable cards (or less than half of what's
+stored) — it reports `skipped` instead. So refreshing only helps a set while
+it's current, and sets that never got data (e.g. The Hobbit) stay hidden
+from the picker.
 
 ## Step 7: Configure Domain
 
