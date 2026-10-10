@@ -11,6 +11,7 @@ IIH (Improvement In Hand) measures how much a card improves your win rate when y
 - **Card Comparison Game**: Test your knowledge by guessing which card has higher IIH
 - **Multiple Sets**: Practice with 30+ Magic sets from 2018-2025
 - **Stats Tracking**: Track your accuracy, streaks, and performance per set
+- **Set Rankings**: Crowdsourced ratings of how fun each set is to draft
 - **Analytics Dashboard**: Visualizations showing IIH limitations and biases
 - **Educational Content**: Learn about IIH methodology and its limitations
 - **Responsive Design**: Works seamlessly on desktop and mobile

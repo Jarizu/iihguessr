@@ -77,6 +77,9 @@ export default function ReviewPage() {
             <Link href="/stats" className="text-neutral-400 hover:text-neutral-200">
               Stats
             </Link>
+            <Link href="/sets" className="text-neutral-400 hover:text-neutral-200">
+              Sets
+            </Link>
           </div>
         </nav>
 

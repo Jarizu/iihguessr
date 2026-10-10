@@ -47,6 +47,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   guesses       Guess[]
+  setRatings    SetRating[]
   stats         UserStats?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
@@ -118,6 +119,8 @@ model SetMetadata {
   lastSyncedAt DateTime?
   syncStatus   String    @default("pending")
 
+  ratings SetRating[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -175,6 +178,34 @@ model UserStats {
   biggestMissMetric String?
 
   updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// Set Ratings (crowdsourced "how fun is this set")
+// ============================================
+
+// Raw scores only; rankings are computed on read (src/lib/ratings/score.ts)
+// so the scoring formula can change without migrating data.
+model SetRating {
+  id      String      @id @default(cuid())
+  userId  String
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  setCode String
+  set     SetMetadata @relation(fields: [setCode], references: [setCode], onDelete: Cascade)
+
+  fun        Int      // 1-10
+  experience String   // "few" | "some" | "lots"
+  tags       String[] @default([])
+
+  // Was this the newest released set when the rating was last saved?
+  // Lets us compare in-season ratings with hindsight ones later.
+  ratedWhileCurrent Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, setCode])
+  @@index([setCode])
 }
 
 model DataSyncLog {
