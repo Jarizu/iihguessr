@@ -77,6 +77,10 @@ export default function Home() {
           <Link href="/review" className="hover:text-neutral-300 transition-colors">
             Review Mistakes
           </Link>
+          <span>|</span>
+          <Link href="/sets" className="hover:text-neutral-300 transition-colors">
+            Set Rankings
+          </Link>
         </div>
       </div>
     </main>

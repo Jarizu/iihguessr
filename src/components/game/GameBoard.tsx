@@ -8,6 +8,7 @@ import { ResultOverlay } from "./ResultOverlay";
 import { ScoreTracker } from "./ScoreTracker";
 import { SetSelector } from "./SetSelector";
 import { MetricSelector } from "./MetricSelector";
+import { RatePrompt } from "@/components/ratings/RatePrompt";
 
 const METRIC_STORAGE_KEY = "iihguessr_metric";
 
@@ -69,9 +70,23 @@ export function GameBoard() {
     nextPair,
   } = useGame(selectedSet, selectedMetric);
 
+  // Rounds played per set this visit, for the "rate this set" prompt.
+  const [roundsBySet, setRoundsBySet] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (!result || !selectedSet) return;
+    setRoundsBySet((prev) => ({
+      ...prev,
+      [selectedSet]: (prev[selectedSet] ?? 0) + 1,
+    }));
+    // Count each result once; selectedSet changes alone shouldn't count.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result]);
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (!currentPair || isLoading) return;
+      // Typing/clicking in the rating prompt shouldn't pick cards or advance.
+      if ((e.target as HTMLElement | null)?.closest?.("[data-rating-form]")) return;
 
       if (!result) {
         if (e.key === "1") {
@@ -140,6 +155,14 @@ export function GameBoard() {
           total={stats.total}
         />
       </div>
+
+      {selectedSet && (
+        <RatePrompt
+          setCode={selectedSet}
+          setName={sets.find((s) => s.code === selectedSet)?.name ?? selectedSet.toUpperCase()}
+          rounds={roundsBySet[selectedSet] ?? 0}
+        />
+      )}
 
       {isLoading && (
         <div className="text-center py-12">

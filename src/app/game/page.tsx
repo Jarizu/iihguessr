@@ -17,6 +17,9 @@ export default function GamePage() {
             <Link href="/review" className="text-neutral-400 hover:text-neutral-200">
               Review
             </Link>
+            <Link href="/sets" className="text-neutral-400 hover:text-neutral-200">
+              Sets
+            </Link>
           </div>
         </nav>
 
