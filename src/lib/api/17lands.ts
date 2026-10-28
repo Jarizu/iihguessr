@@ -5,18 +5,28 @@ import {
 } from "@/lib/utils/constants";
 
 /**
- * Fetch card ratings from 17lands for a specific set and format
- * Uses event_type, start_date, and end_date parameters for historical data access
+ * Fetch card ratings from 17lands for a specific set and format.
+ *
+ * Uses /api/card_data with time_period=ALL_TIME.
+ *
+ * The older /card_ratings/data endpoint silently ignores every filter it is
+ * given - start_date and end_date included - and always answers with the
+ * LAST_DAY window. Nothing errors; the response just describes a single day.
+ * That made the current set report noisy IIH values (Campus Crier in FRA read
+ * +0.46pp off one day's 1,615 games against -0.05pp across all 80,711), and
+ * made every set no longer in Arena's rotation return zero playable cards.
+ *
+ * time_period is the real control. Valid values, from /data/filters:
+ * ALL_TIME, ALL_EXCEPT_FIRST_WEEK, LAST_TWO_EVENTS, LATEST_EVENT,
+ * LAST_TWO_WEEKS, LAST_WEEK, LAST_DAY, FIRST_WEEK.
  */
 export async function fetchCardRatings(
   setCode: string,
-  format: DraftFormat,
-  startDate: string,
-  endDate: string
+  format: DraftFormat
 ): Promise<SeventeenLandsCard[]> {
-  // 17lands API uses event_type instead of format, and requires date range.
+  // 17lands API uses event_type instead of format.
   // `expansion` is case-sensitive: lowercase codes return an empty array.
-  const url = `${SEVENTEEN_LANDS_BASE_URL}/card_ratings/data?expansion=${setCode.toUpperCase()}&event_type=${format}&start_date=${startDate}&end_date=${endDate}`;
+  const url = `${SEVENTEEN_LANDS_BASE_URL}/api/card_data?expansion=${setCode.toUpperCase()}&event_type=${format}&time_period=ALL_TIME`;
 
   console.log(`Fetching from: ${url}`);
 
@@ -35,7 +45,10 @@ export async function fetchCardRatings(
   }
 
   const data = await response.json();
-  return data as SeventeenLandsCard[];
+  // /api/card_data wraps the rows in { copyright, notes, data }, where the
+  // old endpoint returned a bare array. Accept either.
+  const rows = Array.isArray(data) ? data : data?.data;
+  return (Array.isArray(rows) ? rows : []) as SeventeenLandsCard[];
 }
 
 /**
@@ -57,16 +70,9 @@ export function getIwd(card: SeventeenLandsCard): number | null {
  */
 export async function probeSetHasData(
   setCode: string,
-  startDate: string,
-  endDate: string,
 ): Promise<boolean> {
   try {
-    const ratings = await fetchCardRatings(
-      setCode,
-      "PremierDraft",
-      startDate,
-      endDate,
-    );
+    const ratings = await fetchCardRatings(setCode, "PremierDraft");
     const playable = ratings.filter((c) => c.ever_drawn_game_count >= 50);
     return playable.length >= MIN_PLAYABLE_CARDS;
   } catch {
