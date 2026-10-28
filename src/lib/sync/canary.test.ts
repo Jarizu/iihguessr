@@ -21,7 +21,7 @@ describe("checkSeventeenLandsCanary", () => {
   it("probes the newest main set released at least a week ago", async () => {
     mockProbe.mockResolvedValue(true);
     expect(await checkSeventeenLandsCanary(candidates, now)).toBeNull();
-    expect(mockProbe).toHaveBeenCalledWith("fra", "2026-09-25", "2026-10-10");
+    expect(mockProbe).toHaveBeenCalledWith("fra");
   });
 
   it("reports an error when the current set has no data", async () => {

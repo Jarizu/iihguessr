@@ -81,14 +81,7 @@ async function handle(request: NextRequest) {
     // assume the parent has data (the cards are draftable in the parent's
     // packs) and let syncSet do its own probing/fallback.
     if (!parentSetCode) {
-      const releaseDate = new Date(scryfallSet.released_at);
-      const probeStart = isoDay(
-        new Date(releaseDate.getTime() - 7 * 24 * 60 * 60 * 1000),
-      );
-      const probeEnd = isoDay(
-        new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-      );
-      const hasData = await probeSetHasData(code, probeStart, probeEnd);
+      const hasData = await probeSetHasData(code);
       if (!hasData) {
         results.push({
           setCode: code,
@@ -152,8 +145,4 @@ function resolveParent(
     return overrideParent;
   }
   return null;
-}
-
-function isoDay(d: Date): string {
-  return d.toISOString().slice(0, 10);
 }

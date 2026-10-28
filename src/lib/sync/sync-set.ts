@@ -16,8 +16,8 @@ export interface SyncResult {
   setCode: string;
   /**
    * "skipped": 17lands didn't return enough data to be worth saving, so
-   * nothing was written. Normal for older sets, whose data 17lands no
-   * longer serves publicly.
+   * nothing was written. Expected for sets 17lands genuinely has little
+   * data for, and a tripwire if its API shape changes again.
    */
   status: "success" | "skipped" | "error";
   cardsAdded: number;
@@ -27,24 +27,6 @@ export interface SyncResult {
 
 interface SyncOptions {
   format?: DraftFormat;
-  /**
-   * Override the start/end date for 17lands. Otherwise read from SetMetadata
-   * or fall back to a rolling window around the set's release date.
-   */
-  startDate?: string;
-  endDate?: string;
-}
-
-function rollingWindow(releaseDate: Date): { start: string; end: string } {
-  const start = new Date(releaseDate.getTime() - 7 * 24 * 60 * 60 * 1000);
-  // 60 days past today (or 60 days past release for old sets) — wide enough
-  // to capture any active queue. 17lands caps responses to data it has.
-  const horizon = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
-  const end = horizon > releaseDate ? horizon : new Date(releaseDate.getTime() + 60 * 24 * 60 * 60 * 1000);
-  return {
-    start: start.toISOString().slice(0, 10),
-    end: end.toISOString().slice(0, 10),
-  };
 }
 
 /**
@@ -72,10 +54,6 @@ export async function syncSet(
     };
   }
 
-  const window = rollingWindow(setMeta.releaseDate);
-  const startDate = options.startDate ?? window.start;
-  const endDate = options.endDate ?? window.end;
-
   const logEntry = await prisma.dataSyncLog.create({
     data: { setCode, format, status: "started" },
   });
@@ -87,7 +65,7 @@ export async function syncSet(
     });
 
     // 17lands: try the set's own expansion first.
-    let ratingsData = await fetchCardRatings(setCode, format, startDate, endDate);
+    let ratingsData = await fetchCardRatings(setCode, format);
 
     // Bonus-sheet fallback: if this set has a parent and we got nothing,
     // pull the parent's data and let the name-match step pick out the
@@ -96,18 +74,13 @@ export async function syncSet(
       console.log(
         `[syncSet] No data for ${setCode}; falling back to parent ${setMeta.parentSetCode}`,
       );
-      ratingsData = await fetchCardRatings(
-        setMeta.parentSetCode,
-        format,
-        startDate,
-        endDate,
-      );
+      ratingsData = await fetchCardRatings(setMeta.parentSetCode, format);
     }
 
-    // Never overwrite stored stats with a thinner response. 17lands now
-    // serves only the current set publicly (older sets come back with a
-    // handful of games), and API changes can return nothing at all; either
-    // way every card would be rewritten with null IIH.
+    // Never overwrite stored stats with a thinner response. If 17lands
+    // changes its API again - as it did when /card_ratings/data started
+    // ignoring its filters and answering with a single day - every card
+    // would otherwise be rewritten with null IIH.
     const playableInResponse = ratingsData.filter(
       (c) => c.ever_drawn_game_count >= 50,
     ).length;
